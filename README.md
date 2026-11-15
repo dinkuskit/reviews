@@ -29,6 +29,10 @@ npm test
 
 `npm test` builds the plugin, packages it the way the Registry does (failing if the backend passes 128 KiB), and runs the tests.
 
+## Pull requests
+
+Every pull request to `main` runs CI and gets a ClawSweeper review. Only the reviewed commit may merge.
+
 ## License
 
 MIT
