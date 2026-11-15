@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/@emdash-cms/plugin-cli/schemas/emdash-plugin.schema.json",
+  "slug": "dinkus-reviews",
+  "publisher": "did:plc:ekk4pjmkh3k3ql2kfoex3qt4",
+  "name": "DinkusKit Reviews",
+  "description": "Star ratings and reviews from your buyers, for DinkusKit Commerce stores on EmDash. Scaffold: it collects nothing yet.",
+  "keywords": ["reviews", "ratings", "product reviews", "ecommerce"],
+  "license": "MIT",
+  "author": {
+    "name": "DinkusKit",
+    "url": "https://dinkuskit.com"
+  },
+  "security": {
+    "url": "https://github.com/dinkuskit/reviews/security"
+  },
+  "repo": "https://github.com/dinkuskit/reviews",
+  "capabilities": [],
+  "storage": {},
+  "admin": {
+    "pages": [
+      { "path": "/reviews", "label": "Reviews", "icon": "star" }
+    ]
+  }
+}
