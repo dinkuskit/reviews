@@ -55,8 +55,13 @@ report before running project scripts.
 This is a scaffold. The plugin has one admin page that says no reviews are
 collected, and `src/rating.ts` holds the rating rules: whole stars from 1 to 5,
 and a product's average and count in UCP's `rating` shape. It keeps no data,
-sends no email, and is not published. There is no release workflow, changeset
-setup or ClawSweeper dispatch yet; each arrives in its own pull request.
+sends no email, and is not published. There is no release workflow or changeset
+setup yet; each arrives in its own pull request.
+
+`.github/workflows/clawsweeper-dispatch.yml` sends non-draft pull requests to
+`main` for a ClawSweeper review, as in the other DinkusKit repositories. It
+does nothing until the repository variable `CLAWSWEEPER_SPARK_ENABLED` is
+`true` and the review runner has enrolled this repository.
 
 Run `npm ci --ignore-scripts`, `npm run typecheck` and `npm test` before
 pushing. `npm test` builds the plugin, runs the official Registry packaging
