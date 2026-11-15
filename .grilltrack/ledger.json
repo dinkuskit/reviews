@@ -1,0 +1,67 @@
+{
+  "closeout": null,
+  "created_at": "2026-11-15T00:23:37+00:00",
+  "current_focus": {
+    "cadence": "sequential",
+    "confirmed": false,
+    "domain": "charter-and-scope",
+    "started_at": "2026-11-15T00:23:37+00:00",
+    "status": "grilling",
+    "summary": "What DinkusKit Reviews owns and how it is separate from Commerce."
+  },
+  "decisions": [
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Their own plugin, DinkusKit Reviews, in its own repository. It hands each product two numbers, an average rating and a review count, and the storefront and agent catalog read those without knowing how reviews were collected.",
+      "context_ref": "file:docs/research/product-ratings.md",
+      "created_at": "2026-11-15T00:23:37+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "charter-and-scope",
+      "history": [
+        {
+          "at": "2026-11-15T00:23:37+00:00",
+          "choice": "Their own plugin, DinkusKit Reviews, in its own repository. It hands each product two numbers, an average rating and a review count, and the storefront and agent catalog read those without knowing how reviews were collected.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "reviews-own-plugin-20261115",
+      "implementation_ref": null,
+      "question": "Do product ratings and reviews live inside Commerce or in their own plugin?",
+      "rationale": "Owner, 15 Nov 2026 00:19 UTC, replying to that recommendation: 'agreed instead of merging in 128 lets actually scaffold the dinkuskit/* repo'. An owner gets reviews without choosing a third-party app as on Shopify, and Commerce stays small.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-15T00:23:37+00:00",
+      "verification_ref": null
+    }
+  ],
+  "last_activation": {
+    "at": "2026-11-15T00:23:37+00:00",
+    "mechanism": "implicit"
+  },
+  "last_pause": null,
+  "pause": null,
+  "recommendation": null,
+  "schema_version": "grilltrack/v0.1",
+  "status": "active",
+  "title": "DinkusKit Reviews: charter and first version",
+  "track_id": "gt-20261115002337-5dec4e",
+  "updated_at": "2026-11-15T00:23:37+00:00"
+}
