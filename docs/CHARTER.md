@@ -58,17 +58,28 @@ rating and a review count.
   2026). Reviews hands the email to EmDash's email service in the store. No
   DinkusKit mail service is involved. Not built yet.
 
+- **How the review request works** (owner, 22 Nov 2026): one email per shipped
+  order with a link for each product, no reminder, on from install with a
+  switch, a link that works for 60 days and for one review per product, three
+  tries to hand an email over, and no request for an order whose turn passed
+  more than 30 days ago.
+- **The buyer writes the review on the store's own `/review` page** (owner, 22
+  Nov 2026), drawn on the server with a plain form. EmDash does not let a
+  plugin serve a web page, so the plugin answers that page and takes its form.
+
 ## Built
 
 Review records and each product's rating in the store, the owner's Reviews
 page (publish, hide, mark as spam, one public reply, and the approve-first
 setting), two public read-only routes for the rating and the published
-reviews, and the private courier inbox that takes in shipped orders.
+reviews, the private courier inbox that takes in shipped orders, the hourly
+review request email through the store's own email sender, and the two routes
+the store's `/review` page reads and posts to.
 
 ## Not decided
 
-Nothing is waiting on the owner. Not designed yet: the words of the review
-request email and the buyer's review page.
+Nothing is waiting on the owner. Not built yet: the store template's `/review`
+page.
 
 ## Out of scope
 

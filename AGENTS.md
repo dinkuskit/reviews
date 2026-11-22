@@ -40,6 +40,11 @@ report before running project scripts.
   shipped order through the store's courier, at its private `courier/inbox`
   route (`src/inbox.ts`), which refuses every signed-in caller;
   do not read Commerce's data directly or assume cross-plugin access.
+- The buyer's email goes to the store's own email sender (`ctx.email`) and
+  nowhere else. EmDash does not let a plugin serve a web page, so the buyer's
+  review page is the store's `/review` page; this plugin only answers it
+  (`write`) and takes the review its server hands over (`send`). Neither may answer the order or the
+  buyer's email, and a review's id must not give the order away.
 - The storefront, the store's catalog feed and the cross-store agent catalog
   read the rating. They do not need to know how reviews were collected.
 - An owner can hide spam and abuse and reply to a review. Nothing here may let
@@ -57,9 +62,11 @@ This is the first build. `src/reviews.ts` keeps review records and each
 product's rating in plugin storage (`reviews`, `ratings`); `src/admin.ts` and
 `src/pages.ts` are the owner's Reviews page; `src/public.ts` is the two public
 read-only routes, `rating` and `list`; `src/inbox.ts` is the courier inbox
-that keeps shipped orders in `shipped`; `src/rating.ts` holds the rating rules.
-Nothing creates a review yet: there is no buyer form, no email is sent, and
-the plugin is not published. There is no release workflow or changeset setup
+that keeps shipped orders in `shipped`; `src/rating.ts` holds the rating rules;
+`src/requests.ts` is the hourly review request email; `src/write.ts` is what
+the store's `/review` page reads and where its form posts. No store collects
+reviews yet: the courier and the store template's `/review` page are not
+released, and the plugin is not published. There is no release workflow or changeset setup
 yet; each arrives in its own pull request.
 
 A public route returns only what a shopper sees on the product page. Never

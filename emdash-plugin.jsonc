@@ -14,7 +14,7 @@
     "url": "https://github.com/dinkuskit/reviews/security"
   },
   "repo": "https://github.com/dinkuskit/reviews",
-  "capabilities": [],
+  "capabilities": ["email:send"],
   "storage": {
     "reviews": {
       "indexes": ["productId", "status", "createdAt", ["productId", "status"]],

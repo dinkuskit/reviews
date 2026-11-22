@@ -26,7 +26,11 @@ const BOOKMARK = `courier:after:${encodeURIComponent(SENDER)}:${encodeURICompone
 const LATE_AFTER_MS = 5 * 60_000;
 const LINES_MAX = 100;
 
-/** One shipped order waiting for its review request. The request itself is not sent by this version. */
+/**
+ * One shipped order. waiting: its review request is not sent yet. asked: the request email went to
+ * the store's email sender. failed: handing it over failed three times and it was given up on.
+ * missed: its turn passed more than 30 days ago while requests were off, so it is not asked.
+ */
 export interface ShippedOrder {
   orderId: string;
   /** When the order shipped, as Commerce recorded it. The wait before asking counts from here. */
@@ -36,8 +40,14 @@ export interface ShippedOrder {
   name: string;
   /** The products bought; each can be reviewed once from this order. */
   lines: { productId: string; productName: string }[];
-  state: "waiting";
+  state: "waiting" | "asked" | "failed" | "missed";
   receivedAt: string;
+  /** When the request email was handed to the store's email sender. */
+  askedAt?: string;
+  /** SHA-256 of the secret in the email's links; the secret itself is never kept. */
+  key?: string;
+  /** How many times the email was handed over, failures included. */
+  tries?: number;
 }
 
 interface Collection {

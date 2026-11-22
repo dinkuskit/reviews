@@ -2,12 +2,12 @@
   "closeout": null,
   "created_at": "2026-11-15T00:23:37+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
+    "cadence": "sequential",
     "confirmed": false,
     "domain": "first-build",
-    "started_at": "2026-11-22T15:46:55+00:00",
+    "started_at": "2026-11-22T19:06:57+00:00",
     "status": "grilling",
-    "summary": "What the first build keeps and shows: the review record, the owner's moderation page, and what the storefront may read."
+    "summary": "Reopen reviews-review-page-on-store-20261122: The approved choice stands: the buyer writes the review on the store's own /review page, a plain form with no script. Only how that page reaches the plugin is corrected, to the pattern the store template already uses for its order lookup page."
   },
   "decisions": [
     {
@@ -469,10 +469,124 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T18:08:44+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "One email per shipped order, sent by the store's own email sender once the wait after shipping is over (14 days unless the owner changes it, 1 to 90). The email lists every product in the order, each with its own link. No reminder email. Requests are on from install, with an on/off switch on the Reviews page. A link works for 60 days and for one review per product per order; only the SHA-256 of its secret is kept. An order is marked as asked before its email is handed over, so no buyer is emailed twice. A failed handover is tried again on later hourly runs, 3 times in all. A store with no email sender, or a site that does not know its own address, sends nothing and loses nothing, and the Reviews page says so. An order whose turn passed more than 30 days ago is not asked.",
+      "context_ref": "file:src/requests.ts",
+      "created_at": "2026-11-22T18:45:00+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-request-email-sender-20261122"
+      ],
+      "domain": "first-build",
+      "history": [
+        {
+          "at": "2026-11-22T18:53:12+00:00",
+          "choice": "One email per shipped order, sent by the store's own email sender once the wait after shipping is over (14 days unless the owner changes it, 1 to 90). The email lists every product in the order, each with its own link. No reminder email. Requests are on from install, with an on/off switch on the Reviews page. A link works for 60 days and for one review per product per order; only the SHA-256 of its secret is kept. An order is marked as asked before its email is handed over, so no buyer is emailed twice. A failed handover is tried again on later hourly runs, 3 times in all. A store with no email sender, or a site that does not know its own address, sends nothing and loses nothing, and the Reviews page says so. An order whose turn passed more than 30 days ago is not asked.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "reviews-request-email-20261122",
+      "implementation_ref": null,
+      "question": "How does Reviews ask a buyer for a review?",
+      "rationale": "The owner approved on 22 Nov 2026. One email covering all products and requests on from install match the most used review app on Shopify, read on 22 Nov 2026; it sells reminders as a paid extra, so one email is the baseline. The 60 days, the 30 days and the 3 tries are this project's own numbers.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T18:53:12+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "On the store's own /review page, drawn on the server by the store template as a plain form with no script. EmDash refuses a web page from a sandboxed plugin, so the plugin has two public routes that the page's server calls instead, the way the store's order lookup page calls Commerce: POST write answers what a link opens (the product's name and the name the review would carry, or that it is done, or closed), and POST send takes what the buyer sent and keeps the review once. The form posts to the /review page itself, so what the buyer typed is still there when something needs fixing. Both routes need the secret from the request email, and neither answers the order or the buyer's email. A review's id is a hash, so it does not give the order away.",
+      "context_ref": "file:src/write.ts",
+      "created_at": "2026-11-22T18:45:00+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-who-may-review-20261122"
+      ],
+      "domain": "first-build",
+      "history": [
+        {
+          "at": "2026-11-22T18:53:12+00:00",
+          "choice": "On the store's own /review page, drawn on the server by the store template as a plain form with no script. EmDash refuses a web page from a sandboxed plugin, so the plugin has two public routes for that page instead: GET write answers what a link opens (the product's name and the name the review would carry, or that it is done or closed), and POST send takes the form, keeps the review once, and sends the buyer back to /review with the outcome. Both need the secret from the request email, and neither answers the order or the buyer's email. A review's id is a hash, so it does not give the order away.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T19:06:57+00:00",
+          "choice": "On the store's own /review page, drawn on the server by the store template as a plain form with no script. EmDash refuses a web page from a sandboxed plugin, so the plugin has two public routes for that page instead: GET write answers what a link opens (the product's name and the name the review would carry, or that it is done or closed), and POST send takes the form, keeps the review once, and sends the buyer back to /review with the outcome. Both need the secret from the request email, and neither answers the order or the buyer's email. A review's id is a hash, so it does not give the order away.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "The approved choice stands: the buyer writes the review on the store's own /review page, a plain form with no script. Only how that page reaches the plugin is corrected, to the pattern the store template already uses for its order lookup page.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T19:06:57+00:00",
+          "choice": "On the store's own /review page, drawn on the server by the store template as a plain form with no script. EmDash refuses a web page from a sandboxed plugin, so the plugin has two public routes for that page instead: GET write answers what a link opens (the product's name and the name the review would carry, or that it is done or closed), and POST send takes the form, keeps the review once, and sends the buyer back to /review with the outcome. Both need the secret from the request email, and neither answers the order or the buyer's email. A review's id is a hash, so it does not give the order away.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "reviews-review-page-on-store-20261122",
+      "implementation_ref": null,
+      "question": "Where does the buyer write the review?",
+      "rationale": "The owner approved on 22 Nov 2026 that the buyer writes the review on the store's own page, as a plain form with no script. Found on a real EmDash 1.5 site on 22 Nov 2026: a raw plugin route that answers text/html is refused. The page reaches the plugin the way the store template's order lookup page reaches Commerce.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T19:06:57+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
-    "at": "2026-11-15T00:23:37+00:00",
+    "at": "2026-11-22T19:06:57+00:00",
     "mechanism": "implicit"
   },
   "last_pause": null,
@@ -482,5 +596,5 @@
   "status": "active",
   "title": "DinkusKit Reviews: charter and first version",
   "track_id": "gt-20261115002337-5dec4e",
-  "updated_at": "2026-11-22T18:08:44+00:00"
+  "updated_at": "2026-11-22T19:06:57+00:00"
 }

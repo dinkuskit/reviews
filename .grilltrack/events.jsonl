@@ -23,3 +23,9 @@
 {"action": "decision_locked", "at": "2026-11-22T18:08:44+00:00", "data": {"decision_id": "reviews-shipped-order-inbox-20261122"}, "event_id": "b59e7ff3-e175-41aa-a784-5f560356610b"}
 {"action": "decision_proposed", "at": "2026-11-22T18:08:44+00:00", "data": {"decision_id": "reviews-request-email-sender-20261122"}, "event_id": "5b13dfdf-8f27-4149-8cf3-d496ebc70a09"}
 {"action": "decision_locked", "at": "2026-11-22T18:08:44+00:00", "data": {"decision_id": "reviews-request-email-sender-20261122"}, "event_id": "29c07141-f007-4bce-bca7-392cf1766de7"}
+{"action": "decision_proposed", "at": "2026-11-22T18:45:00+00:00", "data": {"decision_id": "reviews-request-email-20261122"}, "event_id": "5a14ee22-405e-4633-8261-9fc6d2bec2f6"}
+{"action": "decision_proposed", "at": "2026-11-22T18:45:00+00:00", "data": {"decision_id": "reviews-review-page-on-store-20261122"}, "event_id": "db320fda-1532-4d1a-8fd2-16c45ed1a46b"}
+{"action": "decision_locked", "at": "2026-11-22T18:53:12+00:00", "data": {"decision_id": "reviews-request-email-20261122"}, "event_id": "2ab81922-16d9-4246-9123-6ca21879fc2b"}
+{"action": "decision_locked", "at": "2026-11-22T18:53:12+00:00", "data": {"decision_id": "reviews-review-page-on-store-20261122"}, "event_id": "f9df93e7-1c18-411e-a3fc-533eb6dd72a0"}
+{"action": "decision_reopened", "at": "2026-11-22T19:06:57+00:00", "data": {"affected": [], "decision_id": "reviews-review-page-on-store-20261122", "reason": "The approved choice stands: the buyer writes the review on the store's own /review page, a plain form with no script. Only how that page reaches the plugin is corrected, to the pattern the store template already uses for its order lookup page."}, "event_id": "2adac296-8a9e-44c5-a733-1fd3b693ef89"}
+{"action": "decision_locked", "at": "2026-11-22T19:06:57+00:00", "data": {"decision_id": "reviews-review-page-on-store-20261122"}, "event_id": "e9645e27-0cf7-4959-81ee-9dd358b3c923"}

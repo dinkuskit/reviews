@@ -2,6 +2,7 @@ import type { BlockResponse } from "@emdash-cms/blocks/server";
 import type { PluginContext, SandboxedRouteContext } from "emdash/plugin";
 import { courierState } from "./inbox.js";
 import { FILTERS, listPage, reviewPage, type Filter, type Toast } from "./pages.js";
+import { ensureRequestsTask, requestState, saveRequestSettings, DAYS_MAX } from "./requests.js";
 import { approveFirst, countReviews, listReviews, readReview, setApproveFirst, setReply, setStatus, REPLY_MAX, type Status } from "./reviews.js";
 
 /** EmDash's Editor role; Administrators are above it. Lower roles never see Reviews. */
@@ -31,12 +32,12 @@ const cursorOf = (value: unknown) => {
 };
 
 async function list(ctx: PluginContext, filter: Filter, cursor?: string, toast?: Toast): Promise<BlockResponse> {
-  const [page, published, pending, hidden, spam, hold, courier] = await Promise.all([
+  const [page, published, pending, hidden, spam, hold, courier, requests] = await Promise.all([
     listReviews(ctx, filter === "all" ? {} : { status: filter }, cursor),
     countReviews(ctx, "published"), countReviews(ctx, "pending"), countReviews(ctx, "hidden"), countReviews(ctx, "spam"),
-    approveFirst(ctx), courierState(ctx),
+    approveFirst(ctx), courierState(ctx), requestState(ctx),
   ]);
-  return listPage({ filter, items: page.items, next: page.cursor, counts: { published, pending, hidden, spam }, approveFirst: hold, courier }, toast);
+  return listPage({ filter, items: page.items, next: page.cursor, counts: { published, pending, hidden, spam }, approveFirst: hold, courier, requests }, toast);
 }
 
 const GONE: Toast = { message: "That review is no longer here.", type: "error" };
@@ -58,13 +59,21 @@ export async function reviewsAdmin(route: SandboxedRouteContext, ctx: PluginCont
   }
   const input = interaction(route.input);
   if (!input) return { blocks: [] };
-  if (input.type === "page_load") return list(ctx, "all");
+  if (input.type === "page_load") {
+    // Covers a store that updated from a version without review requests.
+    await ensureRequestsTask(ctx);
+    return list(ctx, "all");
+  }
 
   if (input.type === "form_submit") {
     if (input.action_id === "save_settings") {
-      const on = input.values.approveFirst === true;
+      const on = input.values.approveFirst === true, days = input.values.requestDays;
+      if (typeof days !== "number" || !Number.isInteger(days) || days < 1 || days > DAYS_MAX) {
+        return list(ctx, "all", undefined, { message: `Not saved. The wait before asking is a whole number of days from 1 to ${DAYS_MAX}.`, type: "error" });
+      }
       await setApproveFirst(ctx, on);
-      return list(ctx, "all", undefined, { message: on ? "New reviews now wait for your approval." : "New reviews are now published straight away.", type: "success" });
+      await saveRequestSettings(ctx, input.values.requestsOn === true, days);
+      return list(ctx, "all", undefined, { message: "Saved.", type: "success" });
     }
     if (input.action_id.startsWith("reply:")) {
       const id = idOf(input.action_id), typed = typeof input.values.reply === "string" ? input.values.reply : "";
