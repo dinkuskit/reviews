@@ -44,9 +44,10 @@ const plugin: SandboxedPlugin = {
     rating: { public: true, methods: ["GET"], response: "raw", request: { body: "none" }, handler: read(publicRating) },
     // The store's courier only (plugin-communication-rule-20261122): private, and it refuses any signed-in caller.
     "courier/inbox": { public: false, permission: "plugins:manage", methods: ["POST"], handler: courierInbox },
-    // What the store's /review page reads and where its form posts (reviews-who-may-review-20261122). Public, and each needs the secret from the request email.
-    write: { public: true, methods: ["GET"], response: "raw", request: { body: "none" }, handler: writePage },
-    send: { public: true, methods: ["POST"], response: "raw", request: { body: "text", maxBytes: 16_384 }, handler: sendReview },
+    // What the store's /review page asks and hands over from inside the store's server (reviews-review-page-on-store-20261122).
+    // Public, and each needs the secret from the request email.
+    write: { public: true, methods: ["POST"], handler: writePage },
+    send: { public: true, methods: ["POST"], handler: sendReview },
     list: { public: true, methods: ["GET"], response: "raw", request: { body: "none" }, handler: read(publicReviews) },
   },
 };

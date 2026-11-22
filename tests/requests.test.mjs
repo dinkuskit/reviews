@@ -22,21 +22,11 @@ const order = (days, over = {}) => ({
 const put = (ctx, id, data) => ctx.storage.shipped.put(id, data);
 const row = (ctx, id) => ctx.storage.shipped.get(id);
 const links = message => [...message.text.matchAll(/https:\/\/\S+/g)].map(found => found[0]);
-/** The store's /review page asking the plugin what a link opens: the status and the JSON answer. */
-const get = async (ctx, url) => {
-  const response = await plugin.routes.write.handler({ input: undefined, request: { url: url.replace("/review?", "/_emdash/api/plugins/dinkus-reviews/write?"), method: "GET", headers: {} } }, ctx);
-  assert.equal(Object.fromEntries(response.headers)["cache-control"], "no-store");
-  return { status: response.status, ...JSON.parse(response.body.value) };
-};
-/** The page's form posting: always a 303 back to the store's /review page; answers the outcome in `r`. */
-const post = async (ctx, fields) => {
-  const response = await plugin.routes.send.handler({ input: new URLSearchParams(fields).toString(), request: { url: "", method: "POST", headers: {} } }, ctx);
-  assert.equal(response.status, 303);
-  assert.equal(response.body, null);
-  const location = Object.fromEntries(response.headers).location;
-  assert.match(location, /^\/review\?/);
-  return new URLSearchParams(location.slice("/review?".length));
-};
+/** The store's /review page asking the plugin, from inside the store's server, what a link opens. */
+const get = (ctx, url) => plugin.routes.write.handler({ input: fieldsOf(url), request: { url: "", method: "POST", headers: {} } }, ctx);
+/** The store's server handing the plugin the form the buyer sent. */
+const post = (ctx, fields) => plugin.routes.send.handler({ input: fields, request: { url: "", method: "POST", headers: {} } }, ctx);
+const CLOSED = { ok: false, error: { code: "CLOSED" } };
 const fieldsOf = (url, more) => {
   const query = new URL(url).searchParams;
   return { o: query.get("o"), p: query.get("p"), k: query.get("k"), ...more };
@@ -166,8 +156,8 @@ test("the link's secret opens the review form's facts, and never the order or th
   const ctx = store();
   await put(ctx, "order-1:shipment-1", order(15));
   await run(ctx);
-  const answer = await get(ctx, links(ctx.sent[0])[0]);
-  assert.deepEqual(answer, { status: 200, state: "open", productId: "mug", productName: "Camp <Mug>", name: "Sam T.", anonymousName: "Verified buyer", bodyMax: 2000, nameMax: 60 });
+  assert.deepEqual(await get(ctx, links(ctx.sent[0])[0]),
+    { ok: true, state: "open", productId: "mug", productName: "Camp <Mug>", name: "Sam T.", anonymousName: "Verified buyer", bodyMax: 2000, nameMax: 60 });
 });
 
 test("a link that is wrong, for another product, or older than 60 days opens nothing", async () => {
@@ -177,19 +167,21 @@ test("a link that is wrong, for another product, or older than 60 days opens not
   const good = links(ctx.sent[0])[0];
   const swap = (name, value) => { const url = new URL(good); url.searchParams.set(name, value); return url.href; };
   for (const url of [swap("k", "0".repeat(64)), swap("k", "short"), swap("p", "stove"), swap("o", "b"), swap("o", "constructor"), good.split("?")[0] + "?"]) {
-    assert.deepEqual(await get(ctx, url), { status: 404, state: "closed" }, url);
+    assert.deepEqual(await get(ctx, url), CLOSED, url);
   }
-  const refused = await post(ctx, fieldsOf(swap("k", "0".repeat(64)), { stars: "5" }));
-  // A link that opens nothing is sent back with nothing of what it carried.
-  assert.equal(refused.toString(), "r=closed");
+  for (const input of [undefined, null, "o=a", [], { o: 1, p: 2, k: 3 }, { o: ["a"], p: "mug", k: {} }]) {
+    assert.deepEqual(await plugin.routes.write.handler({ input, request: { url: "", method: "POST", headers: {} } }, ctx), CLOSED);
+    assert.deepEqual(await post(ctx, input), CLOSED);
+  }
+  assert.deepEqual(await post(ctx, fieldsOf(swap("k", "0".repeat(64)), { stars: "5" })), CLOSED);
   assert.equal(ctx.storage.reviews.rows.size, 0);
   const kept = await row(ctx, "a");
   await put(ctx, "a", { ...kept, askedAt: new Date(Date.now() - 61 * DAY).toISOString() });
-  assert.equal((await get(ctx, good)).status, 404);
-  assert.equal((await post(ctx, fieldsOf(good, { stars: "5" }))).get("r"), "closed");
+  assert.deepEqual(await get(ctx, good), CLOSED);
+  assert.deepEqual(await post(ctx, fieldsOf(good, { stars: "5" })), CLOSED);
   // An order that was never asked has no link at all.
   await put(ctx, "w", order(1));
-  assert.equal((await get(ctx, swap("o", "w"))).status, 404);
+  assert.deepEqual(await get(ctx, swap("o", "w")), CLOSED);
   assert.equal(ctx.storage.reviews.rows.size, 0);
 });
 
@@ -198,10 +190,7 @@ test("a buyer's review is kept once, published at once, and counts in the rating
   await put(ctx, "a", order(15));
   await run(ctx);
   const [mug, tent] = links(ctx.sent[0]);
-  const first = await post(ctx, fieldsOf(mug, { stars: "4", body: "  Keeps coffee hot.\r\nGood handle.  ", name: "" }));
-  assert.equal(first.get("r"), "sent");
-  // The buyer lands back on the same link.
-  assert.deepEqual([first.get("o"), first.get("p"), first.get("k")], Object.values(fieldsOf(mug)));
+  assert.deepEqual(await post(ctx, fieldsOf(mug, { stars: "4", body: "  Keeps coffee hot.\r\nGood handle.  ", name: "" })), { ok: true, result: "sent" });
   const [[id, saved]] = [...ctx.storage.reviews.rows];
   // Shoppers see a review's id, so it gives away nothing about the order.
   assert.match(id, /^[0-9a-f]{32}$/);
@@ -209,12 +198,12 @@ test("a buyer's review is kept once, published at once, and counts in the rating
     name: "Verified buyer", status: "published", createdAt: "", orderId: "order-1" });
   assert.deepEqual(await ctx.storage.ratings.get("mug"), { value: 4, count: 1, turn: 1 });
   // The same link again changes nothing, whatever it carries.
-  assert.equal((await post(ctx, fieldsOf(mug, { stars: "1", body: "Changed my mind" }))).get("r"), "done");
-  assert.deepEqual(await get(ctx, mug), { status: 200, state: "done" });
+  assert.deepEqual(await post(ctx, fieldsOf(mug, { stars: "1", body: "Changed my mind" })), { ok: true, result: "done" });
+  assert.deepEqual(await get(ctx, mug), { ok: true, state: "done" });
   assert.equal(ctx.storage.reviews.rows.size, 1);
   assert.equal((await ctx.storage.ratings.get("mug")).value, 4);
   // The other product in the order still has its own review.
-  assert.equal((await post(ctx, fieldsOf(tent, { stars: "5", name: "  Sam   from Ohio " }))).get("r"), "sent");
+  assert.deepEqual(await post(ctx, fieldsOf(tent, { stars: 5, name: "  Sam   from Ohio " })), { ok: true, result: "sent" });
   assert.equal([...ctx.storage.reviews.rows.values()].find(found => found.data.productId === "tent").data.name, "Sam from Ohio");
   assert.equal(ctx.storage.reviews.rows.size, 2);
 });
@@ -224,7 +213,7 @@ test("the same form sent twice at once keeps one review", async () => {
   await put(ctx, "a", order(15));
   await run(ctx);
   const fields = fieldsOf(links(ctx.sent[0])[0], { stars: "5" });
-  const results = (await Promise.all([post(ctx, fields), post(ctx, fields), post(ctx, fields)])).map(found => found.get("r")).sort();
+  const results = (await Promise.all([post(ctx, fields), post(ctx, fields), post(ctx, fields)])).map(found => found.result).sort();
   assert.deepEqual(results, ["done", "done", "sent"]);
   assert.equal(ctx.storage.reviews.rows.size, 1);
   assert.equal((await ctx.storage.ratings.get("mug")).count, 1);
@@ -235,21 +224,21 @@ test("with approve-first on, a new review waits and does not count yet", async (
   await save(ctx, { approveFirst: true, requestsOn: true, requestDays: 14 });
   await put(ctx, "a", order(15));
   await run(ctx);
-  assert.equal((await post(ctx, fieldsOf(links(ctx.sent[0])[0], { stars: "1" }))).get("r"), "held");
+  assert.deepEqual(await post(ctx, fieldsOf(links(ctx.sent[0])[0], { stars: "1" })), { ok: true, result: "held" });
   assert.equal([...ctx.storage.reviews.rows.values()][0].data.status, "pending");
   assert.equal(await ctx.storage.ratings.get("mug"), null);
 });
 
-test("a review that cannot be kept is sent back with the reason, and nothing is kept", async () => {
+test("a review that cannot be kept is refused with the reason, and nothing is kept", async () => {
   const ctx = store();
   await put(ctx, "a", order(15));
   await run(ctx);
   const link = links(ctx.sent[0])[0];
-  for (const [fields, reason] of [
-    [{ body: "No stars" }, "stars"], [{ stars: "6" }, "stars"], [{ stars: "2.5" }, "stars"], [{ stars: "0" }, "stars"],
-    [{ stars: "5", body: "x".repeat(2001) }, "long"], [{ stars: "5", name: "n".repeat(61) }, "name"], [{ stars: "5", body: "bell\u0007" }, "chars"],
+  for (const [fields, code] of [
+    [{ body: "No stars" }, "STARS"], [{ stars: "6" }, "STARS"], [{ stars: "2.5" }, "STARS"], [{ stars: 0 }, "STARS"], [{ stars: 4.5 }, "STARS"], [{ stars: " 5" }, "STARS"],
+    [{ stars: "5", body: "x".repeat(2001) }, "LONG"], [{ stars: "5", name: "n".repeat(61) }, "NAME"], [{ stars: "5", body: "bell\u0007" }, "CHARS"],
   ]) {
-    assert.equal((await post(ctx, fieldsOf(link, fields))).get("r"), reason);
+    assert.deepEqual(await post(ctx, fieldsOf(link, fields)), { ok: false, error: { code } });
   }
   assert.equal(ctx.storage.reviews.rows.size, 0);
   assert.equal((await get(ctx, link)).state, "open");

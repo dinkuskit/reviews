@@ -43,7 +43,7 @@ report before running project scripts.
 - The buyer's email goes to the store's own email sender (`ctx.email`) and
   nowhere else. EmDash does not let a plugin serve a web page, so the buyer's
   review page is the store's `/review` page; this plugin only answers it
-  (`write`) and takes its form (`send`). Neither may answer the order or the
+  (`write`) and takes the review its server hands over (`send`). Neither may answer the order or the
   buyer's email, and a review's id must not give the order away.
 - The storefront, the store's catalog feed and the cross-store agent catalog
   read the rating. They do not need to know how reviews were collected.
