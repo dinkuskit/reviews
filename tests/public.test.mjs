@@ -3,13 +3,22 @@ import assert from "node:assert/strict";
 import plugin from "../dist/plugin.mjs";
 import { review, shopper, staff, store } from "./store.mjs";
 
-const { rating, list, admin } = plugin.routes;
+const { admin } = plugin.routes;
+/** A public route as a caller sees it: the status and the JSON it carries. */
+const open = name => ({ ...plugin.routes[name], handler: async (route, ctx) => {
+  const response = await plugin.routes[name].handler(route, ctx);
+  const body = JSON.parse(response.body.value);
+  return response.status === 200 ? body : { status: response.status, ...body };
+} });
+const rating = open("rating"), list = open("list");
 
 test("the plugin has the admin route and two read-only public routes", () => {
   assert.deepEqual(Object.keys(plugin.routes), ["admin", "rating", "list"]);
   for (const route of [rating, list]) {
     assert.equal(route.public, true);
     assert.deepEqual(route.methods, ["GET"]);
+    assert.equal(route.response, "raw");
+    assert.deepEqual(route.request, { body: "none" });
   }
   assert.equal(plugin.hooks, undefined);
 });
@@ -64,7 +73,7 @@ test("a request without a usable product is answered 400", async () => {
     for (const url of ["/x", "/x?product=", `/x?product=${"p".repeat(201)}`, "/x?product=a%00b"]) {
       const response = await route.handler(shopper(url), ctx);
       assert.equal(response.status, 400, url);
-      assert.equal(JSON.parse(response.body.value).error.code, "INVALID_REQUEST");
+      assert.equal(response.error.code, "INVALID_REQUEST");
     }
   }
   assert.equal((await list.handler(shopper(`/x?product=mug&cursor=${"c".repeat(2001)}`), ctx)).status, 400);

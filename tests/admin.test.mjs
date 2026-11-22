@@ -2,12 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import plugin from "../dist/plugin.mjs";
 import { validateBlockResponse } from "@emdash-cms/blocks/server";
-import { review, staff, store } from "./store.mjs";
+import { review, shopper, staff, store } from "./store.mjs";
 
 const admin = plugin.routes.admin.handler;
 const text = response => JSON.stringify(response);
 const press = (ctx, action_id, value) => admin(staff({ type: "block_action", action_id, value }), ctx);
 const submit = (ctx, action_id, values) => admin(staff({ type: "form_submit", action_id, values }), ctx);
+const ratingOf = async (ctx, product = "mug") => JSON.parse((await plugin.routes.rating.handler(shopper(`/rating?product=${product}`), ctx)).body.value).rating;
 const valid = response => { const checked = validateBlockResponse(response); assert.equal(checked.valid, true, JSON.stringify(checked.errors)); };
 
 test("the admin route is private and for Editors and Administrators", async () => {
@@ -62,7 +63,6 @@ test("hiding, marking as spam and publishing again move the product's rating wit
   await ctx.storage.reviews.put("five", review({ stars: 5 }));
   await ctx.storage.reviews.put("two", review({ stars: 2 }));
   await ctx.storage.reviews.put("held", review({ stars: 1, status: "pending" }));
-  await ctx.storage.ratings.put("mug", { value: 3.5, scale_min: 1, scale_max: 5, count: 2 });
 
   const opened = await press(ctx, "open", "two");
   valid(opened);
@@ -73,16 +73,46 @@ test("hiding, marking as spam and publishing again move the product's rating wit
   valid(hidden);
   assert.equal(hidden.toast.type, "success");
   assert.equal((await ctx.storage.reviews.get("two")).status, "hidden");
-  assert.deepEqual(await ctx.storage.ratings.get("mug"), { value: 5, scale_min: 1, scale_max: 5, count: 1 });
+  assert.deepEqual(await ratingOf(ctx), { value: 5, scale_min: 1, scale_max: 5, count: 1 });
 
   await press(ctx, "spam:five");
   assert.equal((await ctx.storage.reviews.get("five")).status, "spam");
-  assert.equal(await ctx.storage.ratings.get("mug"), null, "a product with no published review has no rating");
+  assert.equal(await ratingOf(ctx), null, "a product with no published review has no rating");
 
   const approved = await press(ctx, "publish:held");
   assert.match(text(approved), /Published\. It counts/);
   await press(ctx, "publish:two");
-  assert.deepEqual(await ctx.storage.ratings.get("mug"), { value: 1.5, scale_min: 1, scale_max: 5, count: 2 });
+  assert.deepEqual(await ratingOf(ctx), { value: 1.5, scale_min: 1, scale_max: 5, count: 2 });
+});
+
+test("two moderation presses at once on one product never leave an older rating behind", async () => {
+  // The first press reads the product's published reviews, then a second press lands whole before the
+  // first one writes its answer. Each case ends with the rating the reviews themselves give.
+  const cases = [
+    { start: { five: "published", one: "published" }, first: "hide:one", second: "hide:five", rating: null },
+    { start: { five: "published", one: "hidden" }, first: "publish:one", second: "spam:five", rating: { value: 1, scale_min: 1, scale_max: 5, count: 1 } },
+    { start: { five: "pending", one: "pending" }, first: "publish:five", second: "publish:one", rating: { value: 3, scale_min: 1, scale_max: 5, count: 2 } },
+    { start: { five: "pending", one: "hidden" }, first: "publish:five", second: "hide:five", rating: null },
+  ];
+  for (const { start, first, second, rating } of cases) {
+    const ctx = store();
+    await ctx.storage.reviews.put("five", review({ stars: 5, status: "pending" }));
+    await ctx.storage.reviews.put("one", review({ stars: 1, status: "pending" }));
+    for (const [id, status] of Object.entries(start)) if (status !== "pending") await press(ctx, `${status === "published" ? "publish" : "hide"}:${id}`);
+    const query = ctx.storage.reviews.query;
+    let between = true;
+    ctx.storage.reviews.query = async options => {
+      const page = await query(options);
+      if (between && options?.where?.status === "published" && options.limit === 100) {
+        between = false;
+        assert.equal((await press(ctx, second)).toast.type, "success", second);
+      }
+      return page;
+    };
+    assert.equal((await press(ctx, first)).toast.type, "success", first);
+    assert.equal(between, false);
+    assert.deepEqual(await ratingOf(ctx), rating, `${first} with ${second} in between`);
+  }
 });
 
 test("no owner action changes a buyer's stars, words, name, date or order", async () => {
@@ -120,7 +150,7 @@ test("one public reply, replaced by saving again and removed by saving empty", a
   const removed = await submit(ctx, "reply:r1", { reply: "   " });
   assert.match(removed.toast.message, /Reply removed/);
   assert.equal("reply" in await ctx.storage.reviews.get("r1"), false);
-  assert.deepEqual(await ctx.storage.ratings.get("mug"), null, "a reply never touches the rating");
+  assert.equal(await ctx.storage.ratings.count(), 0, "a reply never touches the rating");
 });
 
 test("a review that is gone or just changed is said plainly", async () => {

@@ -91,34 +91,56 @@ export async function countReviews(ctx: PluginContext, status: Status): Promise<
   return reviews(ctx).count({ status });
 }
 
+/**
+ * The kept answer for one product. `count` 0 means no published review; the record stays so that
+ * every refresh is a conditional write on the one before it. `turn` goes up by one each time,
+ * so two answers are never the same bytes.
+ */
+interface Kept { value: number; count: number; turn: number }
+
+function kept(value: unknown): Kept | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { value: average, count, turn } = value as Record<string, unknown>;
+  if (typeof count !== "number" || !Number.isInteger(count) || count < 0) return null;
+  if (count > 0 && !(typeof average === "number" && average >= 1 && average <= 5)) return null;
+  return { value: count > 0 ? average as number : 0, count, turn: typeof turn === "number" && Number.isInteger(turn) ? turn : 0 };
+}
+
 /** A product's rating as last worked out, or null when it has no published review. */
 export async function readRating(ctx: PluginContext, productId: string): Promise<Rating | null> {
-  const value = await ratings(ctx).get(productId);
-  if (typeof value !== "object" || value === null) return null;
-  const { value: average, count } = value as Record<string, unknown>;
-  return typeof average === "number" && average >= 1 && average <= 5 && typeof count === "number" && Number.isInteger(count) && count > 0
-    ? { value: average, scale_min: 1, scale_max: 5, count } : null;
+  const found = kept(await ratings(ctx).get(productId));
+  return found && found.count > 0 ? { value: found.value, scale_min: 1, scale_max: 5, count: found.count } : null;
 }
+
+/** How often a refresh starts again when another one finished first. Each retry means another refresh landed. */
+const REFRESH_TRIES = 8;
 
 /**
  * Works a product's rating out again from every published review of it and keeps the answer,
  * so the storefront reads one small record. Safe to repeat: it always starts from the reviews.
+ *
+ * Two owners can moderate the same product at once. The kept answer's revision is read before the
+ * reviews are, and the write only lands on that revision; a refresh that read the reviews before
+ * another one's change loses the write and starts again, so an older answer never replaces a newer one.
  */
 export async function refreshRating(ctx: PluginContext, productId: string): Promise<Rating | null> {
-  const published: number[] = [];
-  let cursor: string | undefined;
-  do {
-    const page = await reviews(ctx).query({ where: { productId, status: "published" }, limit: 100, ...(cursor ? { cursor } : {}) });
-    for (const { data } of page.items) {
-      const found = review(data);
-      if (found) published.push(found.stars);
-    }
-    cursor = page.hasMore ? page.cursor : undefined;
-  } while (cursor);
-  const rating = aggregate(published);
-  if (rating) await ratings(ctx).put(productId, rating);
-  else await ratings(ctx).delete(productId);
-  return rating;
+  for (let attempt = 0; attempt < REFRESH_TRIES; attempt++) {
+    const before = await ratings(ctx).getVersioned(productId);
+    const published: number[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await reviews(ctx).query({ where: { productId, status: "published" }, limit: 100, ...(cursor ? { cursor } : {}) });
+      for (const { data } of page.items) {
+        const found = review(data);
+        if (found) published.push(found.stars);
+      }
+      cursor = page.hasMore ? page.cursor : undefined;
+    } while (cursor);
+    const rating = aggregate(published);
+    const next: Kept = { value: rating?.value ?? 0, count: rating?.count ?? 0, turn: (kept(before?.value)?.turn ?? 0) + 1 };
+    if ((await ratings(ctx).compareAndSet(productId, before?.revision ?? null, next)).applied) return rating;
+  }
+  throw new Error("The product's rating could not be brought up to date; try again.");
 }
 
 /**

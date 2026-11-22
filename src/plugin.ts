@@ -2,15 +2,18 @@ import { pluginResponse, type PluginContext, type SandboxedPlugin, type Sandboxe
 import { reviewsAdmin } from "./admin.js";
 import { PublicInputError, publicRating, publicReviews } from "./public.js";
 
-/** A public read as JSON; a bad address is answered 400 in the same shape, never as a server error. */
+const json = (status: number, body: unknown) => pluginResponse({ status,
+  headers: { "Content-Type": "application/json; charset=utf-8", ...(status === 200 ? {} : { "Cache-Control": "no-store" }) },
+  body: { kind: "text", value: JSON.stringify(body) } });
+
+/** A public read answered as plain JSON; a bad address is answered 400 in the same shape, never as a server error. */
 const read = (answer: (route: SandboxedRouteContext, ctx: PluginContext) => Promise<unknown>) =>
   async (route: SandboxedRouteContext, ctx: PluginContext) => {
     try {
-      return await answer(route, ctx);
+      return json(200, await answer(route, ctx));
     } catch (error) {
       if (!(error instanceof PublicInputError)) throw error;
-      return pluginResponse({ status: 400, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-        body: { kind: "text", value: JSON.stringify({ error: { code: "INVALID_REQUEST", message: error.message } }) } });
+      return json(400, { error: { code: "INVALID_REQUEST", message: error.message } });
     }
   };
 
@@ -25,8 +28,8 @@ const plugin: SandboxedPlugin = {
     // Editors and Administrators; lower roles do not see Reviews.
     admin: { public: false, permission: "content:edit_any", methods: ["POST"], handler: reviewsAdmin },
     // What any shopper sees on a product page (reviews-public-read-20261122). Read only.
-    rating: { public: true, methods: ["GET"], handler: read(publicRating) },
-    list: { public: true, methods: ["GET"], handler: read(publicReviews) },
+    rating: { public: true, methods: ["GET"], response: "raw", request: { body: "none" }, handler: read(publicRating) },
+    list: { public: true, methods: ["GET"], response: "raw", request: { body: "none" }, handler: read(publicReviews) },
   },
 };
 
