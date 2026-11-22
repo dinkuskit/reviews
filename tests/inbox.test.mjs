@@ -111,12 +111,15 @@ test("the Reviews page says plainly whether the courier is coming by", async () 
     return JSON.stringify(response);
   };
   const ctx = store();
-  assert.match(await page(ctx), /Your store's courier has not come by/);
+  const missing = await page(ctx);
+  assert.match(missing, /Shipped orders do not reach Reviews yet/);
+  // The courier is not released, so the notice must not tell the owner to install or add anything.
+  assert.doesNotMatch(missing, /install|add the|template includes/i);
   await call(ctx, { op: "wants" });
   await deliver(ctx, [shipped(), shipped()], null, "2");
   const visiting = await page(ctx);
   assert.match(visiting, /Your store's courier last came by .* UTC\. 2 shipped orders are waiting for a review request\. This version does not send the request yet\./);
-  assert.doesNotMatch(visiting, /has not come by|is late|@example\.test|Sam Taylor/);
+  assert.doesNotMatch(visiting, /do not reach Reviews yet|is late|@example\.test|Sam Taylor/);
   await ctx.kv.set("courier:last-visit", new Date(Date.now() - 6 * 60_000).toISOString());
   assert.match(await page(ctx), /Your store's courier is late/);
 });

@@ -34,8 +34,9 @@ const minute = (at: string) => new Date(at).toLocaleString("en-US", { dateStyle:
 function courierBlock({ state, lastVisit, waiting }: CourierState): Block {
   const orders = waiting === 1 ? "1 shipped order is" : `${waiting} shipped orders are`;
   if (state === "missing") {
-    return { type: "banner", variant: "alert", title: "Your store's courier has not come by",
-      description: "Reviews hears that an order shipped through your store's courier. The DinkusKit store template includes it; on another EmDash site, add the DinkusKit courier package. Until it runs, Reviews cannot know which buyers to ask." };
+    // No action is offered: the store's courier is not released yet, so there is nothing an owner can install.
+    return { type: "banner", variant: "default", title: "Shipped orders do not reach Reviews yet",
+      description: "Reviews will hear that an order shipped through your store's courier, which is not part of this version. There is nothing for you to do. No buyer is asked for a review yet." };
   }
   if (state === "late") {
     return { type: "banner", variant: "alert", title: "Your store's courier is late",
