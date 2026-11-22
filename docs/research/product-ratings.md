@@ -1,12 +1,12 @@
 # Product ratings and reviews: research
 
-Status: research, read on 15 Nov 2026. The owner agreed to a separate Reviews plugin on 15 Nov 2026 and this repository is its scaffold. Everything else here is a recommendation, not a decision. The cross-store catalog's rating filter stays deferred in dinkuskit/dinkuskit (`agent-catalog-ratings-20261113`) until this plugin produces ratings.
+Status: research, read on 15 Nov 2026. The owner agreed to a separate Reviews plugin on 15 Nov 2026 and this repository is its scaffold. The owner answered six more questions on 22 Nov 2026 (see "Questions answered by the owner"); where this document and the GrillTrack ledger differ, the ledger is right. What is not listed there as answered is still a recommendation, not a decision. The cross-store catalog's rating filter stays deferred in dinkuskit/dinkuskit (`agent-catalog-ratings-20261113`) until this plugin produces ratings.
 
 ## Short answer
 
 Build ratings the way WooCommerce does, with the record shape Shopify standardised:
 
-- A small **Reviews plugin** beside Commerce. A shopper who bought a product gets one email link a week after it ships, picks a star rating, and may add words. The owner can hide spam and reply.
+- A small **Reviews plugin** beside Commerce. A shopper who bought a product gets one email link 14 days after it ships (the owner's answer; the number of days can be changed), picks a star rating, and may add words. The owner can hide spam and reply.
 - Each product then carries two numbers, **average rating** and **number of reviews**. Every big platform exposes exactly these two.
 - Those two numbers flow to the product page, to search engines, to the store's catalog feed, and from there to the cross-store agent catalog, which can then turn on the rating filter it lacks today.
 
@@ -34,7 +34,7 @@ So the WooCommerce trick of "a review is a comment plus a star" does not fit as 
 
 1. **Its own plugin.** Commerce is close to its size limit, and Coupons already set the pattern of a companion plugin. Reviews depends on Commerce for one fact only: did this order contain this product and was it paid.
 2. **Record.** Copy Shopify's standard review fields, minus photos: rating 1 to 5, title, body, submitted, published, display name, product, variant, order, owner reply, verification status.
-3. **Collecting.** Copy WooCommerce's new flow. One email a set number of days after the order ships (default seven). One link opens a page for that order, listing each product. Star required, words optional. Works for guests. The link is the proof of purchase, so every review is a verified buyer and no captcha is needed.
+3. **Collecting.** Copy WooCommerce's new flow. One email a set number of days after the order ships. WooCommerce's default is seven; the owner chose 14 for DinkusKit, as the review apps do, and the store owner can change it. One link opens a page for that order, listing each product. Star required, words optional. Works for guests. The link is the proof of purchase, so every review is a verified buyer and no captcha is needed.
 4. **Moderation.** A Block Kit list: publish, hide, mark spam, reply. No way to change a shopper's stars or words.
 5. **On the store.** Stars and count on the product page and product cards, the reviews underneath, and the owner's reply. The same two numbers go into the page's Product structured data so search engines can show stars.
 6. **For agents.** The store's catalog feed adds `rating` per product in UCP's shape. The cross-store catalog passes it through and adds Shopify's filter: minimum rating and minimum review count.
@@ -45,13 +45,28 @@ So the WooCommerce trick of "a review is a comment plus a star" does not fit as 
 - **US law (FTC rule on reviews, in force since October 2024):** no fake reviews, no reviews by the owner or staff without saying so, no reward tied to a good review, and no hiding bad reviews while presenting the rest as the whole picture. This is why the owner cannot edit stars, why hiding is for spam and abuse, and why any reward must be offered whatever the rating.
 - **Google:** star markup is allowed on a store's own product pages and the reviews must be visible on the page. Reviews written by software are treated as spam, rewarded reviews must be flagged, and full names should not be published. Show a first name and last initial.
 
-## Open questions for the owner
+## What the most used review apps do
+
+In November 2026 the three most reviewed review apps on the Shopify App Store were installed on a sandbox store on their free plans, used from order to published review, and removed. What mattered for the questions below:
+
+- All three accept reviews from an open form on the product page by default. Two publish such a review before the email address is checked; one keeps it out of sight until the reviewer clicks a link in a confirmation email.
+- All three publish a buyer's review straight away by default and offer approve-first as a setting. One can hold back low-star reviews only, which is the pattern the FTC rule warns against.
+- All three keep ratings per store. Where reviews are shared, it is between stores of the same owner, or between retailers under a contract with the source of each review shown.
+- All three wait about 14 days after an order ships before asking, longer for international orders. WooCommerce and BigCommerce wait 7.
+- Photos raise how many reviews get read, and one app asks for the photo before the words. Photo upload is a paid feature in one of them.
+
+## Questions answered by the owner
 
 1. **Own plugin or inside Commerce?** Answered 15 Nov 2026: own plugin, this repository.
-2. **Who may review?** Recommended: buyers only, through the emailed link.
-3. **Publish straight away or wait for approval?** Recommended: publish straight away, since only buyers can review, with hide and spam afterwards. BigCommerce defaults to approval first.
-4. **Same product sold by several stores in the catalog: one blended rating or each store's own?** Recommended: each store's own, shown with that store's offer. Shopify filters on the offer's own rating.
-5. **Review photos?** Recommended: later.
+2. **Who may review?** Answered 22 Nov 2026: buyers only, through the emailed link.
+3. **Publish straight away or wait for approval?** Answered 22 Nov 2026: straight away for every star rating, with hide and spam afterwards and an approve-first setting.
+4. **Same product sold by several stores in the catalog: one blended rating or each store's own?** Answered 22 Nov 2026: each store's own, on that store's offer.
+5. **Review photos?** Answered 22 Nov 2026: later.
+
+6. **Where are reviews kept?** Answered 22 Nov 2026: in the store's own database, in this plugin's storage.
+7. **How long after shipping is the buyer asked?** Answered 22 Nov 2026: 14 days, and the owner can change it.
+
+Each answer is a locked entry in the GrillTrack ledger.
 
 ## Still to prove before building
 
