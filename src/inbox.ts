@@ -30,6 +30,8 @@ const LINES_MAX = 100;
  * One shipped order. waiting: its review request is not sent yet. asked: the request email went to
  * the store's email sender. failed: handing it over failed three times and it was given up on.
  * missed: its turn passed more than 30 days ago while requests were off, so it is not asked.
+ * reminded: the one reminder went out too. settled: asked, and no reminder will follow (the buyer
+ * reviewed everything, the reminder could not be handed over, or its turn passed while reminders were off).
  */
 export interface ShippedOrder {
   orderId: string;
@@ -40,7 +42,7 @@ export interface ShippedOrder {
   name: string;
   /** The products bought; each can be reviewed once from this order. */
   lines: { productId: string; productName: string }[];
-  state: "waiting" | "asked" | "failed" | "missed";
+  state: "waiting" | "asked" | "failed" | "missed" | "reminded" | "settled";
   receivedAt: string;
   /** When the request email was handed to the store's email sender. */
   askedAt?: string;
@@ -48,6 +50,11 @@ export interface ShippedOrder {
   key?: string;
   /** How many times the email was handed over, failures included. */
   tries?: number;
+  /** When the reminder was handed to the store's email sender, and the SHA-256 of the secret in its links. */
+  remindedAt?: string;
+  remindKey?: string;
+  /** How many times the reminder was handed over, failures included. */
+  remindTries?: number;
 }
 
 interface Collection {

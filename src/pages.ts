@@ -1,6 +1,6 @@
 import type { Block, BlockResponse } from "@emdash-cms/blocks/server";
 import type { CourierState } from "./inbox.js";
-import { DAYS_MAX, LINK_DAYS, type RequestState } from "./requests.js";
+import { DAYS_MAX, LINK_DAYS, REMIND_DAYS_MAX, type RequestState } from "./requests.js";
 import { REPLY_MAX, type Listed, type Review, type Status } from "./reviews.js";
 
 /** The owner's Reviews pages, drawn fresh from the store's own records on every click. */
@@ -51,7 +51,7 @@ function courierBlock({ state, lastVisit, waiting }: CourierState): Block {
 const count = (many: number, one: string, other: string) => `${many} ${many === 1 ? one : other}`;
 
 /** Says what review requests are doing, and the one thing that stops them: a store with no email sender. */
-function requestBlocks({ on, days, noSender, noAddress, asked, failed }: RequestState): Block[] {
+function requestBlocks({ on, days, remind, remindDays, noSender, noAddress, asked, reminded, failed }: RequestState): Block[] {
   const blocks: Block[] = [];
   if (on && noSender) {
     blocks.push({ type: "banner", variant: "alert", title: "Review requests are waiting for an email sender",
@@ -61,10 +61,13 @@ function requestBlocks({ on, days, noSender, noAddress, asked, failed }: Request
     blocks.push({ type: "banner", variant: "alert", title: "Review requests are waiting for your site's address",
       description: "Your site does not know its own web address, so the links in a review request would not open. Set the site's address in your site settings. Requests go out within an hour of that, and none is lost." });
   }
-  const sent = `${count(asked, "buyer has", "buyers have")} been asked so far.`;
+  const sent = `${count(asked, "buyer has", "buyers have")} been asked so far${reminded > 0 ? `, and ${count(reminded, "was", "were")} reminded` : ""}.`;
+  const again = remind
+    ? ` A buyer who has not reviewed everything gets one reminder ${count(remindDays, "day", "days")} later.`
+    : " No reminder is sent.";
   const lost = failed > 0 ? ` ${count(failed, "request", "requests")} could not be handed to your email sender after 3 tries and will not be sent.` : "";
   blocks.push(context(on
-    ? `Review requests are on. Each buyer gets one email ${count(days, "day", "days")} after their order ships, with a link for each item that works for ${LINK_DAYS} days. ${sent}${lost}`
+    ? `Review requests are on. Each buyer gets an email ${count(days, "day", "days")} after their order ships, with a link for each item that works for ${LINK_DAYS} days.${again} ${sent}${lost}`
     : `Review requests are off. No buyer is emailed. ${sent}${lost}`));
   return blocks;
 }
@@ -102,9 +105,13 @@ export function listPage(view: ListView, toast?: Toast): BlockResponse {
       description: "Off: a review is published as soon as the buyer sends it, whatever its stars. On: every review waits here for you, whatever its stars.",
       initial_value: view.approveFirst },
     { type: "toggle", action_id: "requestsOn", label: "Ask buyers for a review by email",
-      description: "On: each buyer gets one email after their order ships, sent by your store's own email sender. Off: nobody is emailed. If you turn it back on, an order whose turn passed more than 30 days ago is not asked.",
+      description: "On: each buyer gets an email after their order ships, sent by your store's own email sender. Off: nobody is emailed. If you turn it back on, an order whose turn passed more than 30 days ago is not asked.",
       initial_value: view.requests.on },
-    { type: "number_input", action_id: "requestDays", label: "Days to wait after an order ships", initial_value: view.requests.days, min: 1, max: DAYS_MAX }],
+    { type: "number_input", action_id: "requestDays", label: "Days to wait after an order ships", initial_value: view.requests.days, min: 1, max: DAYS_MAX },
+    { type: "toggle", action_id: "remindersOn", label: "Send one reminder",
+      description: "On: a buyer who has not reviewed every item gets one more email, listing only the items not reviewed yet. A buyer who reviewed everything gets none. Off: nobody is reminded.",
+      initial_value: view.requests.remind },
+    { type: "number_input", action_id: "reminderDays", label: "Days to wait before the reminder", initial_value: view.requests.remindDays, min: 1, max: REMIND_DAYS_MAX }],
     submit: { label: "Save", action_id: "save_settings" } });
   blocks.push(context("You can hide a review, mark it as spam and reply to it. Nobody can change a buyer's stars or words."));
   return { blocks, ...(toast ? { toast } : {}) };
