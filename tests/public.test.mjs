@@ -13,7 +13,8 @@ const open = name => ({ ...plugin.routes[name], handler: async (route, ctx) => {
 const rating = open("rating"), list = open("list");
 
 test("the plugin has the admin route and two read-only public routes", () => {
-  assert.deepEqual(Object.keys(plugin.routes), ["admin", "rating", "list"]);
+  assert.deepEqual(Object.keys(plugin.routes), ["admin", "rating", "courier/inbox", "list"]);
+  assert.deepEqual(Object.keys(plugin.routes).filter(name => plugin.routes[name].public), ["rating", "list"]);
   for (const route of [rating, list]) {
     assert.equal(route.public, true);
     assert.deepEqual(route.methods, ["GET"]);

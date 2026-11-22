@@ -1,4 +1,5 @@
 import type { Block, BlockResponse } from "@emdash-cms/blocks/server";
+import type { CourierState } from "./inbox.js";
 import { REPLY_MAX, type Listed, type Review, type Status } from "./reviews.js";
 
 /** The owner's Reviews pages, drawn fresh from the store's own records on every click. */
@@ -23,6 +24,25 @@ export interface ListView {
   next?: string;
   counts: Counts;
   approveFirst: boolean;
+  /** Whether the store's courier is bringing shipped orders, and how many wait. */
+  courier: CourierState;
+}
+
+const minute = (at: string) => new Date(at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC";
+
+/** Says plainly whether shipped orders are reaching Reviews (plugin-communication-rule-20261122). */
+function courierBlock({ state, lastVisit, waiting }: CourierState): Block {
+  const orders = waiting === 1 ? "1 shipped order is" : `${waiting} shipped orders are`;
+  if (state === "missing") {
+    // No action is offered: the store's courier is not released yet, so there is nothing an owner can install.
+    return { type: "banner", variant: "default", title: "Shipped orders do not reach Reviews yet",
+      description: "Reviews will hear that an order shipped through your store's courier, which is not part of this version. There is nothing for you to do. No buyer is asked for a review yet." };
+  }
+  if (state === "late") {
+    return { type: "banner", variant: "alert", title: "Your store's courier is late",
+      description: `It last came by ${minute(lastVisit!)} and should come about once a minute. ${orders} waiting here. New shipped orders arrive when it runs again.` };
+  }
+  return context(`Your store's courier last came by ${minute(lastVisit!)}. ${orders} waiting for a review request. This version does not send the request yet.`);
 }
 
 /** Every review the store holds, newest first, with the one setting that decides how new ones arrive. */
@@ -52,6 +72,7 @@ export function listPage(view: ListView, toast?: Toast): BlockResponse {
       })),
     });
   }
+  blocks.push(courierBlock(view.courier));
   blocks.push({ type: "divider" }, { type: "form", block_id: "approve-first",
     fields: [{ type: "toggle", action_id: "approveFirst", label: "Hold every new review until I approve it",
       description: "Off: a review is published as soon as the buyer sends it, whatever its stars. On: every review waits here for you, whatever its stars.",

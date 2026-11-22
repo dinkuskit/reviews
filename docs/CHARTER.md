@@ -38,7 +38,8 @@ rating and a review count.
 - **Reviews hears about a shipped order through the store** (owner, 22 Nov
   2026). EmDash plugins cannot call each other, so the store's own server code
   carries the news from Commerce about once a minute, and buyer details stay in
-  the store. That carrying part is not built yet.
+  the store. Reviews' own inbox for it is built; the store's courier and
+  Commerce's side are not.
 
 - **What a review holds** (owner, 22 Nov 2026). Whole stars from 1 to 5 are
   required. Words are optional, up to 2,000 characters, with no title. The
@@ -50,17 +51,24 @@ rating and a review count.
   sees on the product page: never the order, the buyer's email, or a held,
   hidden or spam review.
 
+- **What Reviews keeps from a shipped order** (owner, 22 Nov 2026): the order
+  id, the shipped date, the buyer's email and name, and the products bought.
+  Nothing else, and all of it in the store's own database.
+- **The store's own email sender sends the review request** (owner, 22 Nov
+  2026). Reviews hands the email to EmDash's email service in the store. No
+  DinkusKit mail service is involved. Not built yet.
+
 ## Built
 
 Review records and each product's rating in the store, the owner's Reviews
 page (publish, hide, mark as spam, one public reply, and the approve-first
-setting), and two public read-only routes for the rating and the published
-reviews.
+setting), two public read-only routes for the rating and the published
+reviews, and the private courier inbox that takes in shipped orders.
 
 ## Not decided
 
-Not designed yet, and it needs the owner's answer before it is built: how the
-review request email is sent.
+Nothing is waiting on the owner. Not designed yet: the words of the review
+request email and the buyer's review page.
 
 ## Out of scope
 
