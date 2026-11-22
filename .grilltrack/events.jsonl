@@ -2,3 +2,11 @@
 {"action": "focus_started", "at": "2026-11-15T00:23:37+00:00", "data": {"cadence": "sequential", "domain": "charter-and-scope"}, "event_id": "24c9aa7a-d580-4197-bdd7-a2bf63fcd206"}
 {"action": "decision_proposed", "at": "2026-11-15T00:23:37+00:00", "data": {"decision_id": "reviews-own-plugin-20261115"}, "event_id": "24e5a3a0-0b7d-4daa-9d8f-fbd5c1278e83"}
 {"action": "decision_locked", "at": "2026-11-15T00:23:37+00:00", "data": {"decision_id": "reviews-own-plugin-20261115"}, "event_id": "464cb72f-9919-42a1-ab88-376204da1f5e"}
+{"action": "decision_proposed", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-who-may-review-20261122"}, "event_id": "b6681d6e-9480-42cd-bd6e-96b16e07416b"}
+{"action": "decision_locked", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-who-may-review-20261122"}, "event_id": "b928be90-3cad-45ac-a9b1-fc0824d19adb"}
+{"action": "decision_proposed", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-publish-default-20261122"}, "event_id": "80f054bc-e583-434a-9068-b6fc03881118"}
+{"action": "decision_locked", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-publish-default-20261122"}, "event_id": "22f2db37-613f-458b-ab4b-c0a52c688004"}
+{"action": "decision_proposed", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-catalog-rating-per-store-20261122"}, "event_id": "b86813a6-2ad8-4340-874f-3cbe0dcc1f2e"}
+{"action": "decision_locked", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-catalog-rating-per-store-20261122"}, "event_id": "0eeacda7-5e72-440b-a146-e6aa94a01786"}
+{"action": "decision_proposed", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-photos-later-20261122"}, "event_id": "b2d94e1a-cc8f-4d6a-8351-d87d42643bbf"}
+{"action": "decision_locked", "at": "2026-11-22T13:46:52+00:00", "data": {"decision_id": "reviews-photos-later-20261122"}, "event_id": "b0fe9e30-e32b-4b87-8a40-4791cbbc4f04"}

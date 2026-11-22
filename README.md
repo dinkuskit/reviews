@@ -11,7 +11,7 @@ What exists:
 - An EmDash Registry plugin, `dinkus-reviews`, with one admin page, **Reviews**, that says no reviews are collected. It asks for no capability, no network host and no public route.
 - The rating rules in `src/rating.ts`: whole stars from 1 to 5, and a product's average (to one decimal place) and review count in UCP's `rating` shape. A product with no reviews has no rating.
 
-What is planned, and not decided, is in [docs/CHARTER.md](docs/CHARTER.md) and [docs/research/product-ratings.md](docs/research/product-ratings.md).
+What is decided, and what is still open, is in [docs/CHARTER.md](docs/CHARTER.md) and [docs/research/product-ratings.md](docs/research/product-ratings.md).
 
 ## Install type
 

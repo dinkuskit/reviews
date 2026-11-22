@@ -13,7 +13,7 @@ with [docs/CHARTER.md](docs/CHARTER.md). They describe direction; they do not
 establish implemented capabilities.
 
 [docs/research/product-ratings.md](docs/research/product-ratings.md) compares
-Shopify, WooCommerce and BigCommerce and lists the open product questions. It
+Shopify, WooCommerce and BigCommerce and records the owner's answers. It
 is research. A recommendation there is not a decision until the owner answers
 it and it is recorded in the GrillTrack ledger.
 
