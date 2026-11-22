@@ -17,8 +17,10 @@ execFileSync("tar", ["-xf", artifact.tarballPath, "-C", extracted]);
 const backend = await readFile(resolve(extracted, "backend.js"));
 const manifest = JSON.parse(await readFile(resolve(extracted, "manifest.json"), "utf8"));
 if (manifest.id !== "dinkus-reviews") throw new Error(`unexpected plugin id ${manifest.id}`);
-// The scaffold has no public route, no network host and no capability. Each one is added on purpose, here and in the manifest together.
-if (manifest.routes.some(route => route.public)) throw new Error("the Reviews plugin has no public route yet");
+// Two public routes, both read-only GETs of what a shopper already sees (reviews-public-read-20261122).
+// No network host and no capability. Each one is added on purpose, here and in the manifest together.
+const open = manifest.routes.filter(route => route.public).map(route => route.name).sort();
+if (open.join() !== "list,rating") throw new Error(`the Reviews plugin's public routes are list and rating, found: ${open.join() || "none"}`);
 if ((manifest.allowedHosts ?? []).length > 0 || (manifest.capabilities ?? []).length > 0) throw new Error("the Reviews plugin asks for no host or capability yet");
 console.log([
   "registry_bundle=pass",

@@ -35,11 +35,32 @@ rating and a review count.
 - **The buyer is asked 14 days after the order ships** (owner, 22 Nov 2026).
   The owner can change the number of days.
 
+- **Reviews hears about a shipped order through the store** (owner, 22 Nov
+  2026). EmDash plugins cannot call each other, so the store's own server code
+  carries the news from Commerce about once a minute, and buyer details stay in
+  the store. That carrying part is not built yet.
+
+- **What a review holds** (owner, 22 Nov 2026). Whole stars from 1 to 5 are
+  required. Words are optional, up to 2,000 characters, with no title. The
+  name shown is the buyer's first name and last initial from the order; the
+  buyer can change it or choose "Verified buyer". One review per product per
+  order, and the buyer cannot edit it afterwards in the first version.
+- **The rating and published reviews can be read without signing in** (owner,
+  22 Nov 2026), through two read-only routes that return only what a shopper
+  sees on the product page: never the order, the buyer's email, or a held,
+  hidden or spam review.
+
+## Built
+
+Review records and each product's rating in the store, the owner's Reviews
+page (publish, hide, mark as spam, one public reply, and the approve-first
+setting), and two public read-only routes for the rating and the published
+reviews.
+
 ## Not decided
 
-Not designed yet, and each needs the owner's answer before it is built: how
-Reviews learns about a shipped order (EmDash plugins cannot call each other),
-and how the review request email is sent.
+Not designed yet, and it needs the owner's answer before it is built: how the
+review request email is sent.
 
 ## Out of scope
 

@@ -3,7 +3,7 @@
   "slug": "dinkus-reviews",
   "publisher": "did:plc:ekk4pjmkh3k3ql2kfoex3qt4",
   "name": "DinkusKit Reviews",
-  "description": "Star ratings and reviews from your buyers, for DinkusKit Commerce stores on EmDash. Scaffold: it collects nothing yet.",
+  "description": "Star ratings and reviews from your buyers, for DinkusKit Commerce stores on EmDash. Records stay in your store.",
   "keywords": ["reviews", "ratings", "product reviews", "ecommerce"],
   "license": "MIT",
   "author": {
@@ -15,7 +15,16 @@
   },
   "repo": "https://github.com/dinkuskit/reviews",
   "capabilities": [],
-  "storage": {},
+  "storage": {
+    "reviews": {
+      "indexes": ["productId", "status", "createdAt", ["productId", "status"]],
+      "uniqueIndexes": [["orderId", "productId"]]
+    },
+    "ratings": {
+      "indexes": [],
+      "uniqueIndexes": []
+    }
+  },
   "admin": {
     "pages": [
       { "path": "/reviews", "label": "Reviews", "icon": "star" }
