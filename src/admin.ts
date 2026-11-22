@@ -2,7 +2,7 @@ import type { BlockResponse } from "@emdash-cms/blocks/server";
 import type { PluginContext, SandboxedRouteContext } from "emdash/plugin";
 import { courierState } from "./inbox.js";
 import { FILTERS, listPage, reviewPage, type Filter, type Toast } from "./pages.js";
-import { ensureRequestsTask, requestState, saveRequestSettings, DAYS_MAX } from "./requests.js";
+import { ensureRequestsTask, requestState, saveRequestSettings, DAYS_MAX, REMIND_DAYS_MAX } from "./requests.js";
 import { approveFirst, countReviews, listReviews, readReview, setApproveFirst, setReply, setStatus, REPLY_MAX, type Status } from "./reviews.js";
 
 /** EmDash's Editor role; Administrators are above it. Lower roles never see Reviews. */
@@ -71,8 +71,12 @@ export async function reviewsAdmin(route: SandboxedRouteContext, ctx: PluginCont
       if (typeof days !== "number" || !Number.isInteger(days) || days < 1 || days > DAYS_MAX) {
         return list(ctx, "all", undefined, { message: `Not saved. The wait before asking is a whole number of days from 1 to ${DAYS_MAX}.`, type: "error" });
       }
+      const remindDays = input.values.reminderDays;
+      if (typeof remindDays !== "number" || !Number.isInteger(remindDays) || remindDays < 1 || remindDays > REMIND_DAYS_MAX) {
+        return list(ctx, "all", undefined, { message: `Not saved. The wait before the reminder is a whole number of days from 1 to ${REMIND_DAYS_MAX}.`, type: "error" });
+      }
       await setApproveFirst(ctx, on);
-      await saveRequestSettings(ctx, input.values.requestsOn === true, days);
+      await saveRequestSettings(ctx, input.values.requestsOn === true, days, input.values.remindersOn === true, remindDays);
       return list(ctx, "all", undefined, { message: "Saved.", type: "success" });
     }
     if (input.action_id.startsWith("reply:")) {

@@ -59,10 +59,14 @@ rating and a review count.
   DinkusKit mail service is involved. Not built yet.
 
 - **How the review request works** (owner, 22 Nov 2026): one email per shipped
-  order with a link for each product, no reminder, on from install with a
+  order with a link for each product, on from install with a
   switch, a link that works for 60 days and for one review per product, three
   tries to hand an email over, and no request for an order whose turn passed
   more than 30 days ago.
+- **One reminder** (owner, 22 Nov 2026, replacing "no reminder"): a buyer who
+  has not reviewed every product of the order gets one more email. Proposed
+  and waiting for the owner: 7 days after the request (1 to 10), only the
+  products not reviewed yet, its own switch, links that work for 60 days.
 - **The buyer writes the review on the store's own `/review` page** (owner, 22
   Nov 2026), drawn on the server with a plain form. EmDash does not let a
   plugin serve a web page, so the plugin answers that page and takes its form.

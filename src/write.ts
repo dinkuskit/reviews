@@ -1,6 +1,6 @@
 import type { PluginContext, SandboxedRouteContext } from "emdash/plugin";
 import type { ShippedOrder } from "./inbox.js";
-import { kept, keyOf, opens } from "./requests.js";
+import { kept, opens, reviewIdOf } from "./requests.js";
 import { addReview, approveFirst, readReview, BODY_MAX, NAME_MAX } from "./reviews.js";
 
 /**
@@ -34,8 +34,7 @@ async function open(ctx: PluginContext, link: Link): Promise<Opened | null> {
   const line = order.lines.find(found => found.productId === link.productId);
   if (!line) return null;
   // One review per product per order (reviews-review-content-20261122): the id is made from the pair.
-  // It is a hash because shoppers see a review's id, and they must not see the order's.
-  return { order, line, reviewId: (await keyOf(JSON.stringify([order.orderId, line.productId]))).slice(0, 32) };
+  return { order, line, reviewId: await reviewIdOf(order.orderId, line.productId) };
 }
 
 /** "Sam T." from "Sam Taylor": the name shown unless the buyer changes it. */

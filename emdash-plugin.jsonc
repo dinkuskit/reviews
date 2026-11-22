@@ -21,7 +21,7 @@
       "uniqueIndexes": [["orderId", "productId"]]
     },
     "shipped": {
-      "indexes": ["state", "shippedAt"],
+      "indexes": ["state", "shippedAt", "askedAt"],
       "uniqueIndexes": []
     },
     "ratings": {

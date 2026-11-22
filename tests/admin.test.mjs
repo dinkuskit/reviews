@@ -173,10 +173,10 @@ test("the approve-first switch is off until the owner turns it on", async () => 
   const ctx = store();
   const toggle = response => response.blocks.find(block => block.type === "form").fields[0].initial_value;
   assert.equal(toggle(await admin(staff({ type: "page_load" }), ctx)), false);
-  const on = await submit(ctx, "save_settings", { approveFirst: true, requestsOn: true, requestDays: 14 });
+  const on = await submit(ctx, "save_settings", { approveFirst: true, requestsOn: true, requestDays: 14, remindersOn: true, reminderDays: 7 });
   assert.equal(on.toast.message, "Saved.");
   assert.equal(toggle(await admin(staff({ type: "page_load" }), ctx)), true);
-  const off = await submit(ctx, "save_settings", { requestsOn: true, requestDays: 14 });
+  const off = await submit(ctx, "save_settings", { requestsOn: true, requestDays: 14, remindersOn: true, reminderDays: 7 });
   assert.equal(off.toast.message, "Saved.");
   assert.equal(toggle(off), false);
 });
