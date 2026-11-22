@@ -14,3 +14,6 @@
 {"action": "decision_locked", "at": "2026-11-22T14:18:46+00:00", "data": {"decision_id": "reviews-records-in-store-20261122"}, "event_id": "92a87ab7-987e-4a3b-84c2-c9fd97cd9ab6"}
 {"action": "decision_proposed", "at": "2026-11-22T14:18:46+00:00", "data": {"decision_id": "reviews-request-delay-14-days-20261122"}, "event_id": "125619d1-e762-4609-866e-295d1f3a584e"}
 {"action": "decision_locked", "at": "2026-11-22T14:18:46+00:00", "data": {"decision_id": "reviews-request-delay-14-days-20261122"}, "event_id": "a46b3632-090e-4b73-abf2-b198f4507c97"}
+{"action": "focus_started", "at": "2026-11-22T15:46:55+00:00", "data": {"cadence": "frontier-batch", "domain": "first-build"}, "event_id": "8d472383-6116-42ed-9a0a-5e5eedf58b18"}
+{"action": "decision_proposed", "at": "2026-11-22T15:46:55+00:00", "data": {"decision_id": "reviews-public-read-20261122"}, "event_id": "e24b1ce0-99f8-42e8-8e5f-b8178d24d16d"}
+{"action": "decision_proposed", "at": "2026-11-22T15:46:55+00:00", "data": {"decision_id": "reviews-review-content-20261122"}, "event_id": "22629f5b-f9dd-490f-aaa8-086edf3ad41b"}

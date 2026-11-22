@@ -36,9 +36,9 @@ report before running project scripts.
 - This repository owns review records, how reviews are collected and
   moderated, and each product's rating: the average and the number of reviews.
 - DinkusKit Commerce remains the sole owner of products, prices, checkout,
-  orders and money. Reviews never writes any of them. How Reviews learns that
-  an order held a product and was paid is not designed yet; do not read
-  Commerce's data directly or assume cross-plugin access.
+  orders and money. Reviews never writes any of them. Reviews will hear about
+  a shipped order through the store's own server code, which is not built yet;
+  do not read Commerce's data directly or assume cross-plugin access.
 - The storefront, the store's catalog feed and the cross-store agent catalog
   read the rating. They do not need to know how reviews were collected.
 - An owner can hide spam and abuse and reply to a review. Nothing here may let
@@ -52,11 +52,17 @@ report before running project scripts.
 
 ## Bootstrap state
 
-This is a scaffold. The plugin has one admin page that says no reviews are
-collected, and `src/rating.ts` holds the rating rules: whole stars from 1 to 5,
-and a product's average and count in UCP's `rating` shape. It keeps no data,
-sends no email, and is not published. There is no release workflow or changeset
-setup yet; each arrives in its own pull request.
+This is the first build. `src/reviews.ts` keeps review records and each
+product's rating in plugin storage (`reviews`, `ratings`); `src/admin.ts` and
+`src/pages.ts` are the owner's Reviews page; `src/public.ts` is the two public
+read-only routes, `rating` and `list`; `src/rating.ts` holds the rating rules.
+Nothing creates a review yet: there is no buyer form, no email is sent, and
+the plugin is not published. There is no release workflow or changeset setup
+yet; each arrives in its own pull request.
+
+A public route returns only what a shopper sees on the product page. Never
+return the order id, a buyer's contact details, or a review that is not
+published.
 
 `.github/workflows/clawsweeper-dispatch.yml` sends non-draft pull requests to
 `main` for a ClawSweeper review, as in the other DinkusKit repositories. It

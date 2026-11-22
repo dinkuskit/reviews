@@ -2,12 +2,12 @@
   "closeout": null,
   "created_at": "2026-11-15T00:23:37+00:00",
   "current_focus": {
-    "cadence": "sequential",
+    "cadence": "frontier-batch",
     "confirmed": false,
-    "domain": "charter-and-scope",
-    "started_at": "2026-11-15T00:23:37+00:00",
+    "domain": "first-build",
+    "started_at": "2026-11-22T15:46:55+00:00",
     "status": "grilling",
-    "summary": "What DinkusKit Reviews owns and how it is separate from Commerce."
+    "summary": "What the first build keeps and shows: the review record, the owner's moderation page, and what the storefront may read."
   },
   "decisions": [
     {
@@ -296,6 +296,62 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T14:18:46+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Yes. Two public, read-only GET routes: rating (one product's average and count) and list (its published reviews, newest first, 20 a page, with the owner's reply). They return only what a shopper sees on the product page: stars, words, the name the buyer chose, the date, the reply. Never the order, the buyer's email, or a held, hidden or spam review. Nothing can be written through them.",
+      "context_ref": "file:src/public.ts",
+      "created_at": "2026-11-22T15:46:55+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-records-in-store-20261122"
+      ],
+      "domain": "first-build",
+      "history": [],
+      "id": "reviews-public-read-20261122",
+      "implementation_ref": null,
+      "question": "May the storefront, the store's catalog feed and agents read a product's rating and its published reviews from the plugin without signing in?",
+      "rationale": "Published reviews are public on every big platform: Shopify's product reviews and WooCommerce's reviews are printed on the product page and in its structured data, and WooCommerce's Store API serves product reviews without sign-in. The plugin asks for no capability and no network host.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T15:46:55+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Whole stars from 1 to 5 are required. Words are optional, up to 2,000 characters, with no title. The name shown is the buyer's first name and last initial from the order; the buyer can change it or choose 'Verified buyer'. One review per product per order, and the buyer cannot edit it afterwards in the first version.",
+      "context_ref": "file:src/reviews.ts",
+      "created_at": "2026-11-22T15:46:55+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-who-may-review-20261122"
+      ],
+      "domain": "first-build",
+      "history": [],
+      "id": "reviews-review-content-20261122",
+      "implementation_ref": null,
+      "question": "What does a buyer's review hold in the first version?",
+      "rationale": "Recommended to the owner on 22 Nov 2026 and awaiting the answer; the record in this build follows it. The buyer's review form, which enforces these, is a later pull request.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T15:46:55+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -309,5 +365,5 @@
   "status": "active",
   "title": "DinkusKit Reviews: charter and first version",
   "track_id": "gt-20261115002337-5dec4e",
-  "updated_at": "2026-11-22T14:18:46+00:00"
+  "updated_at": "2026-11-22T15:46:55+00:00"
 }

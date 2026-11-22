@@ -35,11 +35,28 @@ rating and a review count.
 - **The buyer is asked 14 days after the order ships** (owner, 22 Nov 2026).
   The owner can change the number of days.
 
+- **Reviews hears about a shipped order through the store** (owner, 22 Nov
+  2026). EmDash plugins cannot call each other, so the store's own server code
+  carries the news from Commerce about once a minute, and buyer details stay in
+  the store. That carrying part is not built yet.
+
+## Built
+
+Review records and each product's rating in the store, the owner's Reviews
+page (publish, hide, mark as spam, one public reply, and the approve-first
+setting), and two public read-only routes for the rating and the published
+reviews.
+
 ## Not decided
 
-Not designed yet, and each needs the owner's answer before it is built: how
-Reviews learns about a shipped order (EmDash plugins cannot call each other),
-and how the review request email is sent.
+Each needs the owner's answer before it is relied on, and is recorded as
+proposed in the GrillTrack ledger:
+
+- What a review holds: stars required, words optional up to 2,000 characters,
+  no title, the name shown, and one review per product per order.
+- That the rating and published reviews may be read without signing in.
+
+Not designed yet: how the review request email is sent.
 
 ## Out of scope
 
