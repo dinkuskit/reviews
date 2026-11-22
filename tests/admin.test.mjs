@@ -181,6 +181,24 @@ test("the approve-first switch is off until the owner turns it on", async () => 
   assert.equal(toggle(off), false);
 });
 
+test("a made-up action name never writes a review", async () => {
+  const ctx = store();
+  await ctx.storage.reviews.put("five", review({ stars: 5 }));
+  await press(ctx, "hide:two-none");
+  const before = JSON.stringify([[...ctx.storage.reviews.rows], [...ctx.storage.ratings.rows]]);
+  for (const name of ["constructor", "toString", "__proto__", "hasOwnProperty", "valueOf"]) {
+    assert.deepEqual(await press(ctx, `${name}:five`), { blocks: [] }, name);
+    assert.deepEqual(await submit(ctx, `${name}:five`, { reply: "hi" }), { blocks: [] }, name);
+    // The same names as a filter fall back to the whole list.
+    const listed = await press(ctx, "list", name);
+    valid(listed);
+    assert.deepEqual(listed.blocks.find(block => block.type === "table").rows.map(row => row.review.value), ["five"], name);
+    assert.equal((await press(ctx, `more:${name}`)).blocks.find(block => block.type === "table").page_action_id, "more:all", name);
+  }
+  assert.equal(JSON.stringify([[...ctx.storage.reviews.rows], [...ctx.storage.ratings.rows]]), before);
+  assert.equal((await ctx.storage.reviews.get("five")).status, "published");
+});
+
 test("a record that is not a review is never shown", async () => {
   const ctx = store();
   await ctx.storage.reviews.put("bad-stars", review({ stars: 6 }));

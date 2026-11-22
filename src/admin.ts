@@ -21,7 +21,7 @@ function interaction(input: unknown): Interaction | null {
   return null;
 }
 
-const filterOf = (value: unknown): Filter => (typeof value === "string" && value in FILTERS ? value as Filter : "all");
+const filterOf = (value: unknown): Filter => (typeof value === "string" && Object.hasOwn(FILTERS, value) ? value as Filter : "all");
 /** A review's id from `verb:<id>`. An id may itself hold a colon, so everything after the first one is the id. */
 const idOf = (actionId: string) => actionId.slice(actionId.indexOf(":") + 1);
 const cursorOf = (value: unknown) => {
@@ -85,7 +85,8 @@ export async function reviewsAdmin(route: SandboxedRouteContext, ctx: PluginCont
     const found = id ? await readReview(ctx, id) : null;
     return found ? reviewPage(id, found) : list(ctx, "all", undefined, GONE);
   }
-  const change = verb ? VERBS[verb] : undefined;
+  // Own entries only: "constructor" or "toString" must never pass as a verb.
+  const change = verb && Object.hasOwn(VERBS, verb) ? VERBS[verb] : undefined;
   if (change) {
     const id = idOf(input.action_id);
     const saved = await setStatus(ctx, id, change.status);

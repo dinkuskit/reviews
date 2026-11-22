@@ -161,8 +161,10 @@ async function change(ctx: PluginContext, id: string, edit: (current: Review) =>
  * The owner's whole power over a review's visibility: publish it, hide it, or mark it as spam.
  * The stars, the words, the name and the date are copied over untouched; no owner action can change them.
  */
-export const setStatus = (ctx: PluginContext, id: string, status: Exclude<Status, "pending">) =>
-  change(ctx, id, current => ({ ...current, status }));
+export function setStatus(ctx: PluginContext, id: string, status: Exclude<Status, "pending">): Promise<Review | null> {
+  if (status !== "published" && status !== "hidden" && status !== "spam") throw new TypeError("a review can be published, hidden or marked as spam");
+  return change(ctx, id, current => ({ ...current, status }));
+}
 
 /** The owner's one public reply; saving again replaces it, and empty text takes it away. */
 export function setReply(ctx: PluginContext, id: string, text: string, now: string): Promise<Review | null> {
