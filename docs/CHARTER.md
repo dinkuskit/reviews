@@ -29,12 +29,17 @@ rating and a review count.
 - **No photos in the first version** (owner, 22 Nov 2026). Stars with optional
   words first. Photos, and any reward for adding one, come later on the
   owner's word.
+- **Reviews are kept in the store** (owner, 22 Nov 2026): in the store's own
+  EmDash database, in this plugin's storage. Nothing about a review or its
+  buyer is kept on a DinkusKit server.
+- **The buyer is asked 14 days after the order ships** (owner, 22 Nov 2026).
+  The owner can change the number of days.
 
 ## Not decided
 
-Not designed yet, and each needs the owner's answer before it is built: where
-review records are kept, how Reviews learns about a shipped order, how the
-review request email is sent, and how many days after shipping it goes out.
+Not designed yet, and each needs the owner's answer before it is built: how
+Reviews learns about a shipped order (EmDash plugins cannot call each other),
+and how the review request email is sent.
 
 ## Out of scope
 

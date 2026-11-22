@@ -63,12 +63,14 @@ In November 2026 the three most reviewed review apps on the Shopify App Store we
 4. **Same product sold by several stores in the catalog: one blended rating or each store's own?** Answered 22 Nov 2026: each store's own, on that store's offer.
 5. **Review photos?** Answered 22 Nov 2026: later.
 
+6. **Where are reviews kept?** Answered 22 Nov 2026: in the store's own database, in this plugin's storage.
+7. **How long after shipping is the buyer asked?** Answered 22 Nov 2026: 14 days, and the owner can change it.
+
 Each answer is a locked entry in the GrillTrack ledger.
 
 ## Still to prove before building
 
 - How the Reviews plugin learns that an order shipped and what it held, without reading Commerce's data directly.
-- How long after shipping the request goes out: 7 days as WooCommerce and BigCommerce do, or 14 as the review apps do.
 - That stores have an email sender set up, since the review request is an email.
 - Whether the catalog's UCP version carries `rating` unchanged from the version read here (2026-04-08).
 
