@@ -17,3 +17,5 @@
 {"action": "focus_started", "at": "2026-11-22T15:46:55+00:00", "data": {"cadence": "frontier-batch", "domain": "first-build"}, "event_id": "8d472383-6116-42ed-9a0a-5e5eedf58b18"}
 {"action": "decision_proposed", "at": "2026-11-22T15:46:55+00:00", "data": {"decision_id": "reviews-public-read-20261122"}, "event_id": "e24b1ce0-99f8-42e8-8e5f-b8178d24d16d"}
 {"action": "decision_proposed", "at": "2026-11-22T15:46:55+00:00", "data": {"decision_id": "reviews-review-content-20261122"}, "event_id": "22629f5b-f9dd-490f-aaa8-086edf3ad41b"}
+{"action": "decision_locked", "at": "2026-11-22T17:15:26+00:00", "data": {"decision_id": "reviews-public-read-20261122"}, "event_id": "5f002d23-f56d-4b78-8c5e-0c0977f95e9d"}
+{"action": "decision_locked", "at": "2026-11-22T17:15:26+00:00", "data": {"decision_id": "reviews-review-content-20261122"}, "event_id": "dd71818b-2dca-4190-8935-7a37b4b64c34"}

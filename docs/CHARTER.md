@@ -40,6 +40,16 @@ rating and a review count.
   carries the news from Commerce about once a minute, and buyer details stay in
   the store. That carrying part is not built yet.
 
+- **What a review holds** (owner, 22 Nov 2026). Whole stars from 1 to 5 are
+  required. Words are optional, up to 2,000 characters, with no title. The
+  name shown is the buyer's first name and last initial from the order; the
+  buyer can change it or choose "Verified buyer". One review per product per
+  order, and the buyer cannot edit it afterwards in the first version.
+- **The rating and published reviews can be read without signing in** (owner,
+  22 Nov 2026), through two read-only routes that return only what a shopper
+  sees on the product page: never the order, the buyer's email, or a held,
+  hidden or spam review.
+
 ## Built
 
 Review records and each product's rating in the store, the owner's Reviews
@@ -49,14 +59,8 @@ reviews.
 
 ## Not decided
 
-Each needs the owner's answer before it is relied on, and is recorded as
-proposed in the GrillTrack ledger:
-
-- What a review holds: stars required, words optional up to 2,000 characters,
-  no title, the name shown, and one review per product per order.
-- That the rating and published reviews may be read without signing in.
-
-Not designed yet: how the review request email is sent.
+Not designed yet, and it needs the owner's answer before it is built: how the
+review request email is sent.
 
 ## Out of scope
 
