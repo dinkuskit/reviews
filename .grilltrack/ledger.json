@@ -596,20 +596,35 @@
         "reviews-request-email-20261122"
       ],
       "domain": "first-build",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-11-22T21:41:37+00:00",
+          "choice": "Yes, one reminder, on from install with its own switch. It goes out 7 days after the request email (the owner can set 1 to 10 days) through the store's own email sender, and lists only the products of the order the buyer has not reviewed yet. A buyer who reviewed everything gets none. Its links work for 60 days from the reminder; the first email's links keep working for their own 60 days. Three tries to hand it over, then it is given up on. A reminder whose turn passed more than 30 days ago (reminders were off) is not sent. Reviews does not track whether an email was opened, so the reminder does not depend on it.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
       "id": "reviews-request-reminder-20261122",
       "implementation_ref": null,
       "question": "Does a buyer who has not reviewed get a reminder email, and how many, when, and for what?",
-      "rationale": "The owner asked on 22 Nov 2026 for reminders in the first version; this replaces 'no reminder' in reviews-request-email-20261122. The most used review app on Shopify, read on 22 Nov 2026: reminders are part of a paid plan; up to 3 can be set and it recommends 1 because a 2nd and 3rd are more likely to be flagged as spam; each delay is 1 to 10 days; no reminder once the buyer has reviewed; a reminder lists the products not yet reviewed. 7 days as the starting delay is our own number. Proposed: the numbers wait for the owner.",
+      "rationale": "The owner approved on 2026-11-22: one reminder, 7 days after the request email, settable from 1 to 10 days, on from install with its own switch. It replaces 'no reminder' in reviews-request-email-20261122. The most used review app on Shopify, read on 2026-11-22: reminders are part of a paid plan; up to 3 can be set and it recommends 1; each delay is 1 to 10 days; no reminder once the buyer has reviewed; a reminder lists the products not yet reviewed. 7 days as the starting delay and the 60-day link are our own numbers.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-22T20:52:21+00:00",
+      "updated_at": "2026-11-22T21:41:37+00:00",
       "verification_ref": null
     }
   ],
@@ -624,5 +639,5 @@
   "status": "active",
   "title": "DinkusKit Reviews: charter and first version",
   "track_id": "gt-20261115002337-5dec4e",
-  "updated_at": "2026-11-22T20:52:21+00:00"
+  "updated_at": "2026-11-22T21:41:37+00:00"
 }

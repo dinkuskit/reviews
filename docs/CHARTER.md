@@ -64,9 +64,9 @@ rating and a review count.
   tries to hand an email over, and no request for an order whose turn passed
   more than 30 days ago.
 - **One reminder** (owner, 22 Nov 2026, replacing "no reminder"): a buyer who
-  has not reviewed every product of the order gets one more email. Proposed
-  and waiting for the owner: 7 days after the request (1 to 10), only the
-  products not reviewed yet, its own switch, links that work for 60 days.
+  has not reviewed every product of the order gets one more email, 7 days
+  after the request (1 to 10), listing only the products not reviewed yet,
+  with its own switch and links that work for 60 days.
 - **The buyer writes the review on the store's own `/review` page** (owner, 22
   Nov 2026), drawn on the server with a plain form. EmDash does not let a
   plugin serve a web page, so the plugin answers that page and takes its form.
