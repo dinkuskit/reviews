@@ -51,6 +51,13 @@ rating and a review count.
   sees on the product page: never the order, the buyer's email, or a held,
   hidden or spam review.
 
+- **What Reviews keeps from a shipped order** (owner, 22 Nov 2026): the order
+  id, the shipped date, the buyer's email and name, and the products bought.
+  Nothing else, and all of it in the store's own database.
+- **The store's own email sender sends the review request** (owner, 22 Nov
+  2026). Reviews hands the email to EmDash's email service in the store. No
+  DinkusKit mail service is involved. Not built yet.
+
 ## Built
 
 Review records and each product's rating in the store, the owner's Reviews
@@ -60,12 +67,8 @@ reviews, and the private courier inbox that takes in shipped orders.
 
 ## Not decided
 
-Recorded as proposed in the GrillTrack ledger, awaiting the owner: what
-Reviews keeps from a shipped order (the order id, the shipped date, the
-buyer's email and name, and the products bought).
-
-Not designed yet, and it needs the owner's answer before it is built: how the
-review request email is sent.
+Nothing is waiting on the owner. Not designed yet: the words of the review
+request email and the buyer's review page.
 
 ## Out of scope
 

@@ -396,20 +396,78 @@
         "reviews-who-may-review-20261122"
       ],
       "domain": "first-build",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-11-22T18:08:44+00:00",
+          "choice": "Reviews asks the courier for the topic order.shipped from dinkus-commerce, 50 at a time, through a private courier/inbox route that refuses every signed-in caller. From each item it keeps, in the store's own database: the order id, the shipped date, the buyer's email and name, and the products bought (id and name). Nothing else in the item is kept. An item id already kept is ignored, so a repeated delivery changes nothing, and a second shipment of one order is a new item. The Reviews page says when the courier last came by or that it is missing, and never shows the buyer's email or name.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
       "id": "reviews-shipped-order-inbox-20261122",
       "implementation_ref": null,
       "question": "What does Reviews take in and keep when the store's courier brings news that an order shipped?",
-      "rationale": "Follows the plugin communication rule and the courier's door contract, both approved by the owner on 22 Nov 2026. Proposed: the list of fields kept awaits the owner. Commerce's outbox for this topic is not built yet.",
+      "rationale": "The owner approved on 22 Nov 2026. Follows the plugin communication rule and the courier's door contract, both approved by the owner on 22 Nov 2026. These are the fewest fields that let Reviews ask the buyer and prove the purchase. Commerce's outbox for this topic is not built yet.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-22T17:47:34+00:00",
+      "updated_at": "2026-11-22T18:08:44+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The store's own email sender: Reviews hands the request email to EmDash's email service in the store, the same sender the store's other email uses. No DinkusKit mail service is involved, and the buyer's email never leaves the store except to that sender. If the store has no email sender set up, no request is sent and the Reviews page says so.",
+      "context_ref": null,
+      "created_at": "2026-11-22T18:08:44+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-records-in-store-20261122"
+      ],
+      "domain": "first-build",
+      "history": [
+        {
+          "at": "2026-11-22T18:08:44+00:00",
+          "choice": "The store's own email sender: Reviews hands the request email to EmDash's email service in the store, the same sender the store's other email uses. No DinkusKit mail service is involved, and the buyer's email never leaves the store except to that sender. If the store has no email sender set up, no request is sent and the Reviews page says so.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "reviews-request-email-sender-20261122",
+      "implementation_ref": null,
+      "question": "Who sends the email that asks a buyer for a review?",
+      "rationale": "The owner approved on 22 Nov 2026. Keeps buyer details in the store, as the records decision requires, and the email comes from the store's own address as it does on the big platforms. Not built yet.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T18:08:44+00:00",
       "verification_ref": null
     }
   ],
@@ -424,5 +482,5 @@
   "status": "active",
   "title": "DinkusKit Reviews: charter and first version",
   "track_id": "gt-20261115002337-5dec4e",
-  "updated_at": "2026-11-22T17:47:34+00:00"
+  "updated_at": "2026-11-22T18:08:44+00:00"
 }
