@@ -176,6 +176,17 @@ export function setReply(ctx: PluginContext, id: string, text: string, now: stri
   });
 }
 
+/**
+ * Keeps a buyer's new review, once: the write only lands when no review has this id yet.
+ * Returns false when one is already there. A published review counts in the rating at once.
+ */
+export async function addReview(ctx: PluginContext, id: string, next: Review): Promise<boolean> {
+  if (!review(next)) throw new TypeError("not a review");
+  if (!(await reviews(ctx).compareAndSet(id, null, next)).applied) return false;
+  if (next.status === "published") await refreshRating(ctx, next.productId);
+  return true;
+}
+
 const APPROVE_FIRST = "state:approve-first";
 
 /** Whether every new review waits for the owner's approval. Off unless the owner turned it on. */

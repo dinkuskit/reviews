@@ -469,6 +469,62 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T18:08:44+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "One email per shipped order, sent by the store's own email sender once the wait after shipping is over (14 days unless the owner changes it, 1 to 90). The email lists every product in the order, each with its own link. No reminder email. Requests are on from install, with an on/off switch on the Reviews page. A link works for 60 days and for one review per product per order; only the SHA-256 of its secret is kept. An order is marked as asked before its email is handed over, so no buyer is emailed twice. A failed handover is tried again on later hourly runs, 3 times in all. A store with no email sender, or a site that does not know its own address, sends nothing and loses nothing, and the Reviews page says so. An order whose turn passed more than 30 days ago is not asked.",
+      "context_ref": "file:src/requests.ts",
+      "created_at": "2026-11-22T18:45:00+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-request-email-sender-20261122"
+      ],
+      "domain": "first-build",
+      "history": [],
+      "id": "reviews-request-email-20261122",
+      "implementation_ref": null,
+      "question": "How does Reviews ask a buyer for a review?",
+      "rationale": "Proposed, awaiting the owner. One email covering all products and requests on from install match the most used review app on Shopify, read on 22 Nov 2026; it sells reminders as a paid extra, so one email is the baseline. The 60 days, the 30 days and the 3 tries are this project's own numbers.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T18:45:00+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "On the store's own /review page, drawn on the server by the store template as a plain form with no script. EmDash refuses a web page from a sandboxed plugin, so the plugin has two public routes for that page instead: GET write answers what a link opens (the product's name and the name the review would carry, or that it is done or closed), and POST send takes the form, keeps the review once, and sends the buyer back to /review with the outcome. Both need the secret from the request email, and neither answers the order or the buyer's email. A review's id is a hash, so it does not give the order away.",
+      "context_ref": "file:src/write.ts",
+      "created_at": "2026-11-22T18:45:00+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-who-may-review-20261122"
+      ],
+      "domain": "first-build",
+      "history": [],
+      "id": "reviews-review-page-on-store-20261122",
+      "implementation_ref": null,
+      "question": "Where does the buyer write the review?",
+      "rationale": "Proposed, awaiting the owner. Found on a real EmDash 1.5 site on 22 Nov 2026: a raw plugin route that answers text/html is refused. A page the store draws also keeps the store's own header, footer and style, as review pages do on the big platforms.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T18:45:00+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -482,5 +538,5 @@
   "status": "active",
   "title": "DinkusKit Reviews: charter and first version",
   "track_id": "gt-20261115002337-5dec4e",
-  "updated_at": "2026-11-22T18:08:44+00:00"
+  "updated_at": "2026-11-22T18:45:00+00:00"
 }

@@ -31,7 +31,20 @@ function collection() {
 export function store() {
   const kv = new Map();
   let turn = 0;
+  const sent = [], tasks = new Map();
   return {
+    /** Emails handed to the store's sender, in order. Set `email` to undefined for a store with no sender. */
+    sent,
+    email: { async send(message) { sent.push(message); } },
+    site: { name: "Camp Store", url: "https://store.example.test", locale: "en" },
+    url: path => `https://store.example.test${path}`,
+    log: { warn() {}, info() {}, error() {}, debug() {} },
+    tasks,
+    cron: {
+      async schedule(name, opts) { tasks.set(name, opts.schedule); },
+      async cancel(name) { tasks.delete(name); },
+      async list() { return [...tasks].map(([name, schedule]) => ({ name, schedule, nextRunAt: "", lastRunAt: null })); },
+    },
     storage: { reviews: collection(), ratings: collection(), shipped: collection() },
     kv: {
       async get(key) { return kv.get(key)?.value ?? null; },

@@ -12,16 +12,17 @@ const open = name => ({ ...plugin.routes[name], handler: async (route, ctx) => {
 } });
 const rating = open("rating"), list = open("list");
 
-test("the plugin has the admin route and two read-only public routes", () => {
-  assert.deepEqual(Object.keys(plugin.routes), ["admin", "rating", "courier/inbox", "list"]);
-  assert.deepEqual(Object.keys(plugin.routes).filter(name => plugin.routes[name].public), ["rating", "list"]);
+test("the plugin has the admin route, two read-only public routes and the buyer's review page", () => {
+  assert.deepEqual(Object.keys(plugin.routes), ["admin", "rating", "courier/inbox", "write", "send", "list"]);
+  assert.deepEqual(Object.keys(plugin.routes).filter(name => plugin.routes[name].public), ["rating", "write", "send", "list"]);
   for (const route of [rating, list]) {
     assert.equal(route.public, true);
     assert.deepEqual(route.methods, ["GET"]);
     assert.equal(route.response, "raw");
     assert.deepEqual(route.request, { body: "none" });
   }
-  assert.equal(plugin.hooks, undefined);
+  // Two hooks only: switching on schedules the hourly request run, and the run itself.
+  assert.deepEqual(Object.keys(plugin.hooks), ["plugin:activate", "cron"]);
 });
 
 test("a product's rating is its published reviews only, in UCP's shape", async () => {

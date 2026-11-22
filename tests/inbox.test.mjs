@@ -118,7 +118,7 @@ test("the Reviews page says plainly whether the courier is coming by", async () 
   await call(ctx, { op: "wants" });
   await deliver(ctx, [shipped(), shipped()], null, "2");
   const visiting = await page(ctx);
-  assert.match(visiting, /Your store's courier last came by .* UTC\. 2 shipped orders are waiting for a review request\. This version does not send the request yet\./);
+  assert.match(visiting, /Your store's courier last came by .* UTC\. 2 shipped orders are waiting for a review request\./);
   assert.doesNotMatch(visiting, /do not reach Reviews yet|is late|@example\.test|Sam Taylor/);
   await ctx.kv.set("courier:last-visit", new Date(Date.now() - 6 * 60_000).toISOString());
   assert.match(await page(ctx), /Your store's courier is late/);
