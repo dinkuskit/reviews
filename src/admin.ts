@@ -1,5 +1,6 @@
 import type { BlockResponse } from "@emdash-cms/blocks/server";
 import type { PluginContext, SandboxedRouteContext } from "emdash/plugin";
+import { courierState } from "./inbox.js";
 import { FILTERS, listPage, reviewPage, type Filter, type Toast } from "./pages.js";
 import { approveFirst, countReviews, listReviews, readReview, setApproveFirst, setReply, setStatus, REPLY_MAX, type Status } from "./reviews.js";
 
@@ -30,12 +31,12 @@ const cursorOf = (value: unknown) => {
 };
 
 async function list(ctx: PluginContext, filter: Filter, cursor?: string, toast?: Toast): Promise<BlockResponse> {
-  const [page, published, pending, hidden, spam, hold] = await Promise.all([
+  const [page, published, pending, hidden, spam, hold, courier] = await Promise.all([
     listReviews(ctx, filter === "all" ? {} : { status: filter }, cursor),
     countReviews(ctx, "published"), countReviews(ctx, "pending"), countReviews(ctx, "hidden"), countReviews(ctx, "spam"),
-    approveFirst(ctx),
+    approveFirst(ctx), courierState(ctx),
   ]);
-  return listPage({ filter, items: page.items, next: page.cursor, counts: { published, pending, hidden, spam }, approveFirst: hold }, toast);
+  return listPage({ filter, items: page.items, next: page.cursor, counts: { published, pending, hidden, spam }, approveFirst: hold, courier }, toast);
 }
 
 const GONE: Toast = { message: "That review is no longer here.", type: "error" };

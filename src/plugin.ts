@@ -1,5 +1,6 @@
 import { pluginResponse, type PluginContext, type SandboxedPlugin, type SandboxedRouteContext } from "emdash/plugin";
 import { reviewsAdmin } from "./admin.js";
+import { courierInbox } from "./inbox.js";
 import { PublicInputError, publicRating, publicReviews } from "./public.js";
 
 const json = (status: number, body: unknown) => pluginResponse({ status,
@@ -29,6 +30,8 @@ const plugin: SandboxedPlugin = {
     admin: { public: false, permission: "content:edit_any", methods: ["POST"], handler: reviewsAdmin },
     // What any shopper sees on a product page (reviews-public-read-20261122). Read only.
     rating: { public: true, methods: ["GET"], response: "raw", request: { body: "none" }, handler: read(publicRating) },
+    // The store's courier only (plugin-communication-rule-20261122): private, and it refuses any signed-in caller.
+    "courier/inbox": { public: false, permission: "plugins:manage", methods: ["POST"], handler: courierInbox },
     list: { public: true, methods: ["GET"], response: "raw", request: { body: "none" }, handler: read(publicReviews) },
   },
 };

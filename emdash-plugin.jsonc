@@ -20,6 +20,10 @@
       "indexes": ["productId", "status", "createdAt", ["productId", "status"]],
       "uniqueIndexes": [["orderId", "productId"]]
     },
+    "shipped": {
+      "indexes": ["state", "shippedAt"],
+      "uniqueIndexes": []
+    },
     "ratings": {
       "indexes": [],
       "uniqueIndexes": []

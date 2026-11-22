@@ -38,7 +38,8 @@ rating and a review count.
 - **Reviews hears about a shipped order through the store** (owner, 22 Nov
   2026). EmDash plugins cannot call each other, so the store's own server code
   carries the news from Commerce about once a minute, and buyer details stay in
-  the store. That carrying part is not built yet.
+  the store. Reviews' own inbox for it is built; the store's courier and
+  Commerce's side are not.
 
 - **What a review holds** (owner, 22 Nov 2026). Whole stars from 1 to 5 are
   required. Words are optional, up to 2,000 characters, with no title. The
@@ -54,10 +55,14 @@ rating and a review count.
 
 Review records and each product's rating in the store, the owner's Reviews
 page (publish, hide, mark as spam, one public reply, and the approve-first
-setting), and two public read-only routes for the rating and the published
-reviews.
+setting), two public read-only routes for the rating and the published
+reviews, and the private courier inbox that takes in shipped orders.
 
 ## Not decided
+
+Recorded as proposed in the GrillTrack ledger, awaiting the owner: what
+Reviews keeps from a shipped order (the order id, the shipped date, the
+buyer's email and name, and the products bought).
 
 Not designed yet, and it needs the owner's answer before it is built: how the
 review request email is sent.

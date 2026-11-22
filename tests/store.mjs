@@ -30,9 +30,20 @@ function collection() {
 
 export function store() {
   const kv = new Map();
+  let turn = 0;
   return {
-    storage: { reviews: collection(), ratings: collection() },
-    kv: { async get(key) { return kv.get(key) ?? null; }, async set(key, value) { kv.set(key, value); }, async delete(key) { return kv.delete(key); } },
+    storage: { reviews: collection(), ratings: collection(), shipped: collection() },
+    kv: {
+      async get(key) { return kv.get(key)?.value ?? null; },
+      async set(key, value) { kv.set(key, { value, revision: String(++turn) }); },
+      async delete(key) { return kv.delete(key); },
+      async getVersioned(key) { return kv.get(key) ?? null; },
+      async compareAndSet(key, expected, value) {
+        if ((kv.get(key)?.revision ?? null) !== expected) return { applied: false };
+        kv.set(key, { value, revision: String(++turn) });
+        return { applied: true };
+      },
+    },
   };
 }
 
@@ -49,3 +60,6 @@ export const staff = (input, role = 40) => ({
   request: { url: "", method: "POST", headers: {} },
 });
 export const shopper = url => ({ input: undefined, request: { url, method: "GET", headers: {} } });
+
+/** The store's courier: a call to a private door from the store's own code, with no signed-in person. */
+export const courier = input => ({ input: { courier: 1, ...input }, request: { url: "", method: "POST", headers: {} } });

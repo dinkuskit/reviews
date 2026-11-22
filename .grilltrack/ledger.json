@@ -382,6 +382,35 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T17:15:26+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Reviews asks the courier for the topic order.shipped from dinkus-commerce, 50 at a time, through a private courier/inbox route that refuses every signed-in caller. From each item it keeps, in the store's own database: the order id, the shipped date, the buyer's email and name, and the products bought (id and name). Nothing else in the item is kept. An item id already kept is ignored, so a repeated delivery changes nothing, and a second shipment of one order is a new item. The Reviews page says when the courier last came by or that it is missing, and never shows the buyer's email or name.",
+      "context_ref": "file:src/inbox.ts",
+      "created_at": "2026-11-22T17:47:34+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-records-in-store-20261122",
+        "reviews-who-may-review-20261122"
+      ],
+      "domain": "first-build",
+      "history": [],
+      "id": "reviews-shipped-order-inbox-20261122",
+      "implementation_ref": null,
+      "question": "What does Reviews take in and keep when the store's courier brings news that an order shipped?",
+      "rationale": "Follows the plugin communication rule and the courier's door contract, both approved by the owner on 22 Nov 2026. Proposed: the list of fields kept awaits the owner. Commerce's outbox for this topic is not built yet.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T17:47:34+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -395,5 +424,5 @@
   "status": "active",
   "title": "DinkusKit Reviews: charter and first version",
   "track_id": "gt-20261115002337-5dec4e",
-  "updated_at": "2026-11-22T17:15:26+00:00"
+  "updated_at": "2026-11-22T17:47:34+00:00"
 }

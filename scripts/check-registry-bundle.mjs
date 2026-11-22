@@ -21,6 +21,9 @@ if (manifest.id !== "dinkus-reviews") throw new Error(`unexpected plugin id ${ma
 // No network host and no capability. Each one is added on purpose, here and in the manifest together.
 const open = manifest.routes.filter(route => route.public).map(route => route.name).sort();
 if (open.join() !== "list,rating") throw new Error(`the Reviews plugin's public routes are list and rating, found: ${open.join() || "none"}`);
+// The courier's door is private and for the store's own code only (dinkuskit/courier docs/doors.md).
+const door = manifest.routes.find(route => route.name === "courier/inbox");
+if (!door || door.public || door.permission !== "plugins:manage") throw new Error("courier/inbox must be a private route with the plugins:manage permission");
 if ((manifest.allowedHosts ?? []).length > 0 || (manifest.capabilities ?? []).length > 0) throw new Error("the Reviews plugin asks for no host or capability yet");
 console.log([
   "registry_bundle=pass",

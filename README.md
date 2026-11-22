@@ -4,7 +4,7 @@ Star ratings and reviews from buyers, for [DinkusKit Commerce](https://github.co
 
 ## Status
 
-First build. The plugin keeps reviews and lets the owner moderate them. It does not ask buyers for reviews yet, so a store has no reviews until that part lands, and nothing is published to the Registry.
+Early build. The plugin keeps reviews, lets the owner moderate them, and takes in shipped orders from the store's courier. It does not ask buyers for reviews yet, so a store has no reviews until that part lands, and nothing is published to the Registry.
 
 What exists:
 
@@ -12,8 +12,9 @@ What exists:
 - One admin page, **Reviews**, for Editors and Administrators: every review newest first, filters by status, and for each review publish, hide, mark as spam and one public reply. One setting holds every new review until the owner approves it; it starts off. Nothing on the page can write a review or change a buyer's stars, words, name or date.
 - Two public, read-only routes for the storefront, the store's catalog feed and agents: `GET rating?product=<id>` (the product's rating, or `null`) and `GET list?product=<id>&cursor=<cursor>` (its published reviews, newest first, 20 a page). They never return the order a review came from or a review that is held, hidden or spam.
 - The rating rules in `src/rating.ts`: whole stars from 1 to 5, and a product's average (to one decimal place) and review count in UCP's `rating` shape. A product with no published review has no rating. The rating is worked out again from the published reviews each time one is published, hidden or marked as spam.
+- A private courier inbox, `POST courier/inbox`, built to the [courier's doors](https://github.com/dinkuskit/courier/blob/main/docs/doors.md). It asks for `order.shipped` from `dinkus-commerce`, keeps each shipped order once (order id, shipped date, the buyer's email and name, the products bought) in plugin storage `shipped`, and refuses any signed-in caller, the store's Administrator included. The Reviews page says when the courier last came by, or that it is missing.
 
-Not built yet: hearing that an order shipped, the review request email, the buyer's review page, and the stars on the storefront.
+Not built yet: the store's courier itself and Commerce's side of it (other repositories), the wait before asking, the review request email, the buyer's review page, and the stars on the storefront.
 
 What is decided, and what is still open, is in [docs/CHARTER.md](docs/CHARTER.md) and [docs/research/product-ratings.md](docs/research/product-ratings.md).
 
