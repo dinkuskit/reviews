@@ -1,6 +1,6 @@
 import type { PluginContext, SandboxedRouteContext } from "emdash/plugin";
 import type { ShippedOrder } from "./inbox.js";
-import { kept, opens, reviewIdOf } from "./requests.js";
+import { holds, kept, opens, reviewIdOf, stop, stopped } from "./requests.js";
 import { addReview, approveFirst, readReview, BODY_MAX, NAME_MAX } from "./reviews.js";
 
 /**
@@ -23,6 +23,19 @@ function linkOf(input: Record<string, unknown>): Link | null {
   if (!id || !productId || id.length > 200 || productId.length > 200 || secret.length !== 64) return null;
   return { id, productId, secret };
 }
+
+/**
+ * The stop link (review-email-stop-link-20261122): the same `o` and `k` with `stop` and no product.
+ * It opens the order whose request or reminder email carried the secret, as long as that request is kept.
+ */
+async function stopOrder(ctx: PluginContext, input: Record<string, unknown>): Promise<ShippedOrder | null> {
+  const { o: id, k: secret } = input;
+  if (typeof id !== "string" || typeof secret !== "string" || !id || id.length > 200 || secret.length !== 64) return null;
+  const shipped = (ctx.storage as unknown as { shipped: { get(id: string): Promise<unknown> } }).shipped;
+  const order = kept(await shipped.get(id));
+  return order && (await holds(order, secret)) ? order : null;
+}
+const stopAsked = (input: Record<string, unknown>) => input.stop === "1" || input.stop === 1 || input.stop === true;
 
 interface Opened { order: ShippedOrder; line: ShippedOrder["lines"][number]; reviewId: string }
 
@@ -52,9 +65,17 @@ const refuse = (code: Refusal) => ({ ok: false as const, error: { code } });
  * `POST write` with `{ o: <shipped order>, p: <product>, k: <secret> }`: what the store's review page shows.
  * open: the form, with the product's name and the name the review would carry. done: this product
  * was already reviewed from this order. Any link that opens nothing is refused as CLOSED.
+ * With `stop` in place of `p` it answers the stop page: stop (the button), or stopped (already done).
  */
 export async function writePage(route: SandboxedRouteContext, ctx: PluginContext) {
-  const link = linkOf(record(route.input));
+  const input = record(route.input);
+  if (stopAsked(input)) {
+    // Asking changes nothing: a mail filter that opens every link in an email stops nothing.
+    const order = await stopOrder(ctx, input);
+    if (!order) return refuse("CLOSED");
+    return { ok: true as const, state: (await stopped(ctx, order.email)) ? "stopped" as const : "stop" as const, store: ctx.site.name || "" };
+  }
+  const link = linkOf(input);
   const opened = link ? await open(ctx, link) : null;
   if (!opened) return refuse("CLOSED");
   if (await readReview(ctx, opened.reviewId)) return { ok: true as const, state: "done" as const };
@@ -66,9 +87,17 @@ export async function writePage(route: SandboxedRouteContext, ctx: PluginContext
  * `POST send` with the link's `o`, `p`, `k` and the form's `stars`, `body`, `name`: keeps the buyer's
  * review. sent: published. held: waiting for the owner (approve-first). done: already reviewed,
  * nothing changed. The same link sent twice keeps one review.
+ * With `stop` in place of `p` it keeps the buyer's stop and answers stopped.
  */
 export async function sendReview(route: SandboxedRouteContext, ctx: PluginContext) {
   const input = record(route.input);
+  if (stopAsked(input)) {
+    // The buyer pressed "Stop review emails": every review email from this store to their address stops.
+    const order = await stopOrder(ctx, input);
+    if (!order) return refuse("CLOSED");
+    await stop(ctx, order.email);
+    return { ok: true as const, result: "stopped" as const, store: ctx.site.name || "" };
+  }
   const link = linkOf(input);
   const opened = link ? await open(ctx, link) : null;
   if (!opened) return refuse("CLOSED");

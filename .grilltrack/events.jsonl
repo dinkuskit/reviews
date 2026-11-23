@@ -31,3 +31,5 @@
 {"action": "decision_locked", "at": "2026-11-22T19:06:57+00:00", "data": {"decision_id": "reviews-review-page-on-store-20261122"}, "event_id": "e9645e27-0cf7-4959-81ee-9dd358b3c923"}
 {"action": "decision_proposed", "at": "2026-11-22T20:52:21+00:00", "data": {"decision_id": "reviews-request-reminder-20261122"}, "event_id": "a91d5fba-cd63-4355-80d3-f2a39797c736"}
 {"action": "decision_locked", "at": "2026-11-22T21:41:37+00:00", "data": {"decision_id": "reviews-request-reminder-20261122"}, "event_id": "dab2a193-2321-4909-be4e-d079c117c30b"}
+{"action": "decision_proposed", "at": "2026-11-22T23:59:03+00:00", "data": {"decision_id": "reviews-email-stop-link-20261122"}, "event_id": "071af063-b606-439c-bea0-5a2143123c0e"}
+{"action": "decision_locked", "at": "2026-11-22T23:59:03+00:00", "data": {"decision_id": "reviews-email-stop-link-20261122"}, "event_id": "1079f512-820d-4619-9cfe-cfa9bbb93161"}

@@ -51,7 +51,7 @@ function courierBlock({ state, lastVisit, waiting }: CourierState): Block {
 const count = (many: number, one: string, other: string) => `${many} ${many === 1 ? one : other}`;
 
 /** Says what review requests are doing, and the one thing that stops them: a store with no email sender. */
-function requestBlocks({ on, days, remind, remindDays, noSender, noAddress, asked, reminded, failed }: RequestState): Block[] {
+function requestBlocks({ on, days, remind, remindDays, noSender, noAddress, asked, reminded, failed, stopped }: RequestState): Block[] {
   const blocks: Block[] = [];
   if (on && noSender) {
     blocks.push({ type: "banner", variant: "alert", title: "Review requests are waiting for an email sender",
@@ -66,9 +66,11 @@ function requestBlocks({ on, days, remind, remindDays, noSender, noAddress, aske
     ? ` A buyer who has not reviewed everything gets one reminder ${count(remindDays, "day", "days")} later.`
     : " No reminder is sent.";
   const lost = failed > 0 ? ` ${count(failed, "request", "requests")} could not be handed to your email sender after 3 tries and will not be sent.` : "";
+  // A count only: no addresses, and nothing here turns emails back on for a buyer who stopped them.
+  const quiet = stopped > 0 ? ` ${count(stopped, "buyer has", "buyers have")} stopped review emails and will not be asked again.` : "";
   blocks.push(context(on
-    ? `Review requests are on. Each buyer gets an email ${count(days, "day", "days")} after their order ships, with a link for each item that works for ${LINK_DAYS} days.${again} ${sent}${lost}`
-    : `Review requests are off. No buyer is emailed. ${sent}${lost}`));
+    ? `Review requests are on. Each buyer gets an email ${count(days, "day", "days")} after their order ships, with a link for each item that works for ${LINK_DAYS} days.${again} ${sent}${lost}${quiet}`
+    : `Review requests are off. No buyer is emailed. ${sent}${lost}${quiet}`));
   return blocks;
 }
 

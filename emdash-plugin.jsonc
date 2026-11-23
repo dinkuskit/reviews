@@ -27,6 +27,10 @@
     "ratings": {
       "indexes": [],
       "uniqueIndexes": []
+    },
+    "stops": {
+      "indexes": [],
+      "uniqueIndexes": []
     }
   },
   "admin": {

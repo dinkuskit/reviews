@@ -23,7 +23,9 @@ const order = (days, over = {}) => ({
 });
 const put = (ctx, id, data) => ctx.storage.shipped.put(id, data);
 const row = (ctx, id) => ctx.storage.shipped.get(id);
-const links = message => [...message.text.matchAll(/https:\/\/\S+/g)].map(found => found[0]);
+const everyLink = message => [...message.text.matchAll(/https:\/\/\S+/g)].map(found => found[0]);
+/** The review links of an email: one per product. The stop link at its end is not one of them. */
+const links = message => everyLink(message).filter(url => !url.endsWith("&stop=1"));
 /** The store's /review page asking the plugin, from inside the store's server, what a link opens. */
 const get = (ctx, url) => plugin.routes.write.handler({ input: fieldsOf(url), request: { url: "", method: "POST", headers: {} } }, ctx);
 /** The store's server handing the plugin the form the buyer sent. */
@@ -373,4 +375,84 @@ test("a reminder that cannot be handed over is tried 3 times, then given up on, 
   await age(ctx, "b", 7);
   await Promise.all([run(ctx), run(ctx)]);
   assert.equal(ctx.sent.filter(message => message.subject.startsWith("A reminder")).length, 1);
+});
+
+/** The stop link at the end of an email, and the fields the store's /review page hands over for it. */
+const stopOf = message => everyLink(message).find(url => url.endsWith("&stop=1"));
+const stopFields = url => { const query = new URL(url).searchParams; return { o: query.get("o"), k: query.get("k"), stop: query.get("stop") }; };
+const ask = (ctx, url) => plugin.routes.write.handler({ input: stopFields(url), request: { url: "", method: "POST", headers: {} } }, ctx);
+const press = (ctx, url) => post(ctx, stopFields(url));
+const sha256 = async text => Buffer.from(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))).toString("hex");
+
+test("every request and reminder ends with a stop link, and only pressing the button stops review emails", async () => {
+  const ctx = store();
+  await put(ctx, "a", order(15, { email: "Sam@Example.test" }));
+  await run(ctx);
+  const [request] = ctx.sent;
+  const stopUrl = stopOf(request);
+  assert.match(stopUrl, /^https:\/\/store\.example\.test\/review\?o=a&k=[0-9a-f]{64}&stop=1$/);
+  assert.match(request.text, /\nStop review emails from Camp Store: https:\/\/\S+&stop=1$/);
+  assert.match(request.html, /<a href="https:\/\/store\.example\.test\/review\?o=a&#38;k=[0-9a-f]{64}&#38;stop=1">Stop review emails from Camp Store<\/a><\/p>$/);
+  // Opening the link, as a mail filter does, shows the button and stops nothing.
+  assert.deepEqual(await ask(ctx, stopUrl), { ok: true, state: "stop", store: "Camp Store" });
+  assert.deepEqual(await ask(ctx, stopUrl), { ok: true, state: "stop", store: "Camp Store" });
+  assert.equal(ctx.storage.stops.rows.size, 0);
+  assert.doesNotMatch(await page(ctx), /stopped review emails/);
+  // The press stops them. What is kept is the SHA-256 of the lower-cased address, never the address.
+  assert.deepEqual(await press(ctx, stopUrl), { ok: true, result: "stopped", store: "Camp Store" });
+  assert.deepEqual([...ctx.storage.stops.rows.keys()], [await sha256("sam@example.test")]);
+  assert.doesNotMatch(JSON.stringify([...ctx.storage.stops.rows.values()]), /example\.test/i);
+  assert.deepEqual(await ask(ctx, stopUrl), { ok: true, state: "stopped", store: "Camp Store" });
+  // Pressing twice keeps one record.
+  await press(ctx, stopUrl);
+  assert.equal(ctx.storage.stops.rows.size, 1);
+  // The open order gets no reminder.
+  await age(ctx, "a", 8);
+  await run(ctx);
+  assert.equal(ctx.sent.length, 1);
+  assert.equal((await row(ctx, "a")).state, "settled");
+  // A later order to the same address, typed in other letters, is never asked.
+  await put(ctx, "b", order(15, { orderId: "order-2", email: "SAM@example.TEST" }));
+  await put(ctx, "c", order(15, { orderId: "order-3", email: "kim@example.test", name: "Kim Lee" }));
+  await run(ctx);
+  assert.deepEqual(ctx.sent.map(message => message.to), ["Sam@Example.test", "kim@example.test"]);
+  assert.equal((await row(ctx, "b")).state, "stopped");
+  // The owner sees a count, and no address.
+  const shown = await page(ctx);
+  assert.match(shown, /2 buyers have been asked so far\. 1 buyer has stopped review emails and will not be asked again\./);
+  assert.doesNotMatch(shown, /example\.test/i);
+  // The review links in the email still open the form: stopping emails does not close them.
+  assert.equal((await get(ctx, links(request)[0])).state, "open");
+});
+
+test("the reminder carries its own stop link, and a stop link outlives the 60 days of the review links", async () => {
+  const ctx = store();
+  await put(ctx, "a", order(15));
+  await run(ctx);
+  await age(ctx, "a", 8);
+  await run(ctx);
+  const [request, reminder] = ctx.sent;
+  assert.notEqual(stopOf(reminder), stopOf(request));
+  assert.match(reminder.text, /\nStop review emails from Camp Store: \S+&stop=1$/);
+  // 61 days on, the review links are closed and the stop link still works.
+  await put(ctx, "a", { ...(await row(ctx, "a")), askedAt: new Date(Date.now() - 70 * DAY).toISOString(), remindedAt: new Date(Date.now() - 61 * DAY).toISOString() });
+  assert.deepEqual(await get(ctx, links(reminder)[0]), CLOSED);
+  assert.equal((await ask(ctx, stopOf(request))).state, "stop");
+  assert.equal((await press(ctx, stopOf(reminder))).result, "stopped");
+});
+
+test("a stop link that is wrong opens nothing and stops nothing", async () => {
+  const ctx = store();
+  await put(ctx, "a", order(15));
+  await put(ctx, "w", order(1, { orderId: "order-9", email: "kim@example.test" }));
+  await run(ctx);
+  const good = stopFields(stopOf(ctx.sent[0]));
+  for (const bad of [{ ...good, k: "0".repeat(64) }, { ...good, k: "short" }, { ...good, o: "w" }, { ...good, o: "constructor" }, { ...good, o: "" }, { stop: "1" }, { ...good, k: 7 }]) {
+    assert.deepEqual(await plugin.routes.write.handler({ input: bad, request: { url: "", method: "POST", headers: {} } }, ctx), CLOSED);
+    assert.deepEqual(await post(ctx, bad), CLOSED);
+  }
+  assert.equal(ctx.storage.stops.rows.size, 0);
+  // Without `stop`, the same fields are a review link with no product: closed, and nothing stops.
+  assert.deepEqual(await post(ctx, { o: good.o, k: good.k }), CLOSED);
+  assert.equal(ctx.storage.stops.rows.size, 0);
 });
