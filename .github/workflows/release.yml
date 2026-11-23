@@ -1,0 +1,124 @@
+name: Publish to EmDash Registry
+
+# Pushing a vX.Y.Z tag whose version matches package.json publishes that commit to the EmDash
+# Registry as dinkus-reviews. "Run workflow" on the same tag retries a publish. The release service
+# requires a public repository, a signed build attestation, and the owner's approval at
+# releases.emdashcms.com for a first release or new access, which the publish step waits for.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: emdash-registry-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Bundle and publish plugin to EmDash Registry
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    # Install, tests and the build come first, then the release action may wait up to 30 minutes
+    # for the owner's approval.
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # The audience-bound GitHub OIDC token the release service checks.
+      attestations: write # Signs the bundle's build provenance.
+    steps:
+      - name: Check repository visibility
+        if: ${{ github.event.repository.visibility != 'public' }}
+        run: |
+          echo "::error title=Public repository required::EmDash releases currently require a public GitHub repository because private repository attestations cannot yet be verified."
+          exit 1
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Check the tag names package.json's version
+        id: meta
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="$(node -p 'require("./package.json").version')"
+          if [ "v$version" != "$TAG" ]; then
+            echo "::error::Tag $TAG does not match package.json version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run typecheck
+      - name: Test (builds and packages the plugin first)
+        run: npm test
+
+      - name: Prepare EmDash Registry release bundle
+        id: prepare
+        env:
+          RELEASE_VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          node .github/scripts/prepare-emdash-release.mjs \
+            --slug dinkus-reviews \
+            --version "$RELEASE_VERSION" \
+            --out-dir .emdash-release \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Upload bundled EmDash release artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: emdash-plugin-dinkus-reviews-${{ steps.meta.outputs.version }}
+          path: |
+            ${{ steps.prepare.outputs.bundle-file }}
+            .emdash-release/emdash-plugin.jsonc
+          if-no-files-found: error
+
+      - name: Create build provenance
+        id: attest
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: ${{ steps.prepare.outputs.bundle-file }}
+
+      - name: Prepare listing media beside the release manifest
+        id: media
+        run: node scripts/registry-release-media.mjs
+
+      # The release service can end a successful publish in RELEASE_CONFLICT
+      # (emdash-cms/emdash#4159), so this step's outcome is not the gate. The verify
+      # step is: it passes only when the publisher's record for this version carries
+      # exactly the bundle bytes prepared above.
+      - name: Publish plugin to EmDash Registry
+        id: publish
+        continue-on-error: true
+        # The same pinned release-action Commerce, Payments and Ship use: it uploads the
+        # listing images named in the prepared manifest (emdash-cms/emdash#4467).
+        uses: emdash-cms/emdash/apps/release-action@45b542c016d35c7a88a590dce8e600e2384c13a9
+        with:
+          service-url: https://releases.emdashcms.com
+          publisher-did: ${{ steps.prepare.outputs.publisher-did }}
+          bundle-file: ${{ steps.prepare.outputs.bundle-file }}
+          provenance-file: ${{ steps.attest.outputs.bundle-path }}
+          plugin-directory: ${{ steps.media.outputs.plugin-directory }}
+          # A first release, or one asking for new access, waits for the owner's approval at
+          # releases.emdashcms.com; keep polling through it (up to the action's 30 minutes).
+          wait-for-approval: "true"
+
+      - name: Verify release is indexed in EmDash Registry
+        env:
+          PUBLISHER_DID: ${{ steps.prepare.outputs.publisher-did }}
+          EMDASH_RELEASE_SELECTOR: ${{ steps.prepare.outputs.selector }}
+          BUNDLE_FILE: ${{ steps.prepare.outputs.bundle-file }}
+        run: |
+          set -euo pipefail
+          node .github/scripts/verify-registry-release.mjs \
+            "$PUBLISHER_DID" "$EMDASH_RELEASE_SELECTOR" "$BUNDLE_FILE" \
+            --media-manifest .emdash-release/emdash-plugin.jsonc
