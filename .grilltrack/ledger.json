@@ -626,6 +626,49 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T21:41:37+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Every review request and reminder ends with a link 'Stop review emails from <store name>'. It opens the store's /review page with one 'Stop review emails' button; the press is a form post, so mail filters that open every link stop nothing. The press stops all review emails from this store to that address: the open request or reminder for this order and the requests for later orders. Reviews keeps a SHA-256 of the lower-cased address, never the address, and checks it before each send. The link works as long as Reviews keeps the order's request. The owner's page shows how many buyers stopped, with no addresses and no way to turn emails back on. Requests still go to every buyer of a shipped order.",
+      "context_ref": "https://judge.me/help/en/articles/8288864-how-to-manage-judge-me-email-subscriptions",
+      "created_at": "2026-11-22T23:59:03+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "reviews-request-reminder-20261122"
+      ],
+      "domain": "first-build",
+      "history": [
+        {
+          "at": "2026-11-22T23:59:03+00:00",
+          "choice": "Every review request and reminder ends with a link 'Stop review emails from <store name>'. It opens the store's /review page with one 'Stop review emails' button; the press is a form post, so mail filters that open every link stop nothing. The press stops all review emails from this store to that address: the open request or reminder for this order and the requests for later orders. Reviews keeps a SHA-256 of the lower-cased address, never the address, and checks it before each send. The link works as long as Reviews keeps the order's request. The owner's page shows how many buyers stopped, with no addresses and no way to turn emails back on. Requests still go to every buyer of a shipped order.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "reviews-email-stop-link-20261122",
+      "implementation_ref": null,
+      "question": "How does a buyer stop review request and reminder emails?",
+      "rationale": "The most used review app on Shopify puts an unsubscribe link in every review request (https://judge.me/help/en/articles/8288864-how-to-manage-judge-me-email-subscriptions, read 2026-11-22). The FTC's CAN-SPAM guide requires a working opt-out in commercial email. A button instead of a bare link keeps automatic link scanners from stopping emails nobody asked to stop. Same decision as review-email-stop-link-20261122 in the dinkuskit ledger. The owner approved on 2026-11-22.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T23:59:03+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -639,5 +682,5 @@
   "status": "active",
   "title": "DinkusKit Reviews: charter and first version",
   "track_id": "gt-20261115002337-5dec4e",
-  "updated_at": "2026-11-22T21:41:37+00:00"
+  "updated_at": "2026-11-22T23:59:03+00:00"
 }

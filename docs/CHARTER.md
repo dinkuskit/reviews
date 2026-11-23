@@ -67,6 +67,13 @@ rating and a review count.
   has not reviewed every product of the order gets one more email, 7 days
   after the request (1 to 10), listing only the products not reviewed yet,
   with its own switch and links that work for 60 days.
+- **A stop link in every review email** (owner, 22 Nov 2026): each request
+  and reminder ends with "Stop review emails from <store>". It opens the
+  store's `/review` page with one button, and only the press stops them, so a
+  mail filter that opens every link stops nothing. The stop covers this
+  store's review emails to that address, for this order and later ones. What
+  is kept is a SHA-256 of the address in lower case, never the address. The
+  owner sees a count, with no addresses and no way to turn emails back on.
 - **The buyer writes the review on the store's own `/review` page** (owner, 22
   Nov 2026), drawn on the server with a plain form. EmDash does not let a
   plugin serve a web page, so the plugin answers that page and takes its form.

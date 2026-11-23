@@ -39,6 +39,7 @@ const NO_SENDER = "state:no-email-sender";
 const NO_ADDRESS = "state:no-site-address";
 
 interface Collection {
+  get(id: string): Promise<unknown>;
   count(where?: Record<string, unknown>): Promise<number>;
   query(options?: { where?: Record<string, unknown>; orderBy?: Record<string, "asc" | "desc">; limit?: number }):
     Promise<{ items: { id: string; data: unknown }[] }>;
@@ -46,6 +47,7 @@ interface Collection {
   compareAndSet(id: string, expectedRevision: string | null, data: unknown): Promise<{ applied: boolean }>;
 }
 const shipped = (ctx: PluginContext) => (ctx.storage as unknown as { shipped: Collection }).shipped;
+const stops = (ctx: PluginContext) => (ctx.storage as unknown as { stops: Collection }).stops;
 
 /** Requests are on unless the owner turned them off. */
 export async function requestsOn(ctx: PluginContext): Promise<boolean> {
@@ -76,7 +78,7 @@ export async function saveRequestSettings(ctx: PluginContext, on: boolean, days:
   await ctx.kv.set(REMIND_DAYS, remindDays);
 }
 
-const STATES = new Set(["waiting", "asked", "failed", "missed", "reminded", "settled"]);
+const STATES = new Set(["waiting", "asked", "failed", "missed", "reminded", "settled", "stopped"]);
 /** The states of an order whose request email went out. */
 const ASKED = new Set(["asked", "reminded", "settled"]);
 
@@ -121,6 +123,33 @@ export async function opens(order: ShippedOrder, secret: string, now: number): P
 }
 
 /**
+ * Whether a secret is the one from this order's request email or its reminder, however old. The
+ * stop link uses it (review-email-stop-link-20261122): it works as long as the order's request is kept.
+ */
+export async function holds(order: ShippedOrder, secret: string): Promise<boolean> {
+  if (!/^[0-9a-f]{64}$/.test(secret)) return false;
+  const given = await keyOf(secret);
+  const request = Boolean(order.key) && same(given, order.key!), reminder = Boolean(order.remindKey) && same(given, order.remindKey!);
+  return request || reminder;
+}
+
+/**
+ * What is kept of a buyer who stopped review emails: the SHA-256 of their address in lower case,
+ * never the address. It is the record's id, so one address is one record.
+ */
+export const stopIdOf = (address: string) => keyOf(address.trim().toLowerCase());
+
+/** Whether this address stopped review emails from this store. */
+export async function stopped(ctx: PluginContext, address: string): Promise<boolean> {
+  return (await stops(ctx).get(await stopIdOf(address))) !== null;
+}
+
+/** Keeps the stop for this address. Pressing twice keeps one record. */
+export async function stop(ctx: PluginContext, address: string, now = Date.now()): Promise<void> {
+  await stops(ctx).compareAndSet(await stopIdOf(address), null, { at: new Date(now).toISOString() });
+}
+
+/**
  * The id of the one review a product can get from an order (reviews-review-content-20261122). It is
  * a hash because shoppers see a review's id, and they must not see the order's.
  */
@@ -137,14 +166,20 @@ export function reviewLink(ctx: PluginContext, id: string, productId: string, se
   return ctx.url(`${REVIEW_PAGE}?o=${encodeURIComponent(id)}&p=${encodeURIComponent(productId)}&k=${secret}`);
 }
 
+/** The address of the store's page where a buyer stops review emails; it shows one button, and only the press stops them. */
+export function stopLink(ctx: PluginContext, id: string, secret: string): string {
+  return ctx.url(`${REVIEW_PAGE}?o=${encodeURIComponent(id)}&k=${secret}&stop=1`);
+}
+
 type Line = ShippedOrder["lines"][number];
 
 function email(ctx: PluginContext, id: string, order: ShippedOrder, lines: Line[], secret: string, words: { subject: string; ask: string; foot: string }) {
   const hello = firstName(order.name) ? `Hi ${firstName(order.name)},` : "Hi,";
   const links = lines.map(line => ({ name: line.productName || "Your item", link: reviewLink(ctx, id, line.productId, secret) }));
-  const text = [hello, "", words.ask, "", ...links.flatMap(line => [`${line.name}`, `Write a review: ${line.link}`, ""]), words.foot].join("\n");
+  const stopWords = `Stop review emails from ${ctx.site.name || "our store"}`, stopAt = stopLink(ctx, id, secret);
+  const text = [hello, "", words.ask, "", ...links.flatMap(line => [`${line.name}`, `Write a review: ${line.link}`, ""]), words.foot, `${stopWords}: ${stopAt}`].join("\n");
   const html = `<p>${escape(hello)}</p><p>${escape(words.ask)}</p>${links.map(line =>
-    `<p><strong>${escape(line.name)}</strong><br><a href="${escape(line.link)}">Write a review</a></p>`).join("")}<p style="color:#666;font-size:13px">${escape(words.foot)}</p>`;
+    `<p><strong>${escape(line.name)}</strong><br><a href="${escape(line.link)}">Write a review</a></p>`).join("")}<p style="color:#666;font-size:13px">${escape(words.foot)}<br><a href="${escape(stopAt)}">${escape(stopWords)}</a></p>`;
   return { to: order.email, subject: words.subject, text, html };
 }
 
@@ -201,6 +236,11 @@ export async function sendDue(ctx: PluginContext, now = Date.now()): Promise<Run
       await shipped(ctx).compareAndSet(id, stored.revision, { ...order, state: "missed" });
       continue;
     }
+    if (await stopped(ctx, order.email)) {
+      // The buyer stopped review emails from this store: this order is never asked.
+      await shipped(ctx).compareAndSet(id, stored.revision, { ...order, state: "stopped" });
+      continue;
+    }
     const secret = newSecret(), tries = (order.tries ?? 0) + 1;
     const asked: ShippedOrder = { ...order, state: "asked", askedAt: new Date(now).toISOString(), key: await keyOf(secret), tries };
     if (!(await shipped(ctx).compareAndSet(id, stored.revision, asked)).applied) continue;
@@ -237,9 +277,10 @@ async function remindDue(ctx: PluginContext, sender: NonNullable<PluginContext["
     if (!(Date.parse(order.askedAt) <= cutoff)) break;
     const late = Date.parse(order.askedAt) < cutoff - LATE_DAYS * DAY_MS;
     const open: Line[] = [];
-    if (!late) for (const line of order.lines) if (!(await readReview(ctx, await reviewIdOf(order.orderId, line.productId)))) open.push(line);
+    // A buyer who stopped review emails gets no reminder either.
+    if (!late && !(await stopped(ctx, order.email))) for (const line of order.lines) if (!(await readReview(ctx, await reviewIdOf(order.orderId, line.productId)))) open.push(line);
     if (open.length === 0) {
-      // Everything is reviewed, or the reminder's turn passed long ago: nothing more is sent for this order.
+      // Everything is reviewed, the buyer stopped review emails, or the reminder's turn passed long ago: nothing more is sent for this order.
       await shipped(ctx).compareAndSet(id, stored.revision, { ...order, state: "settled" });
       continue;
     }
@@ -260,17 +301,17 @@ async function remindDue(ctx: PluginContext, sender: NonNullable<PluginContext["
   return { sent, failed };
 }
 
-export interface RequestState { on: boolean; days: number; remind: boolean; remindDays: number; noSender: boolean; noAddress: boolean; waiting: number; asked: number; reminded: number; failed: number }
+export interface RequestState { on: boolean; days: number; remind: boolean; remindDays: number; noSender: boolean; noAddress: boolean; waiting: number; asked: number; reminded: number; failed: number; stopped: number }
 
 /** What the owner's page says about review requests. */
 export async function requestState(ctx: PluginContext): Promise<RequestState> {
-  const [on, days, remind, remindDays, noSender, noAddress, waiting, asked, reminded, settled, failed] = await Promise.all([
+  const [on, days, remind, remindDays, noSender, noAddress, waiting, asked, reminded, settled, failed, stoppedBuyers] = await Promise.all([
     requestsOn(ctx), requestDays(ctx), remindersOn(ctx), reminderDays(ctx), ctx.kv.get<unknown>(NO_SENDER), ctx.kv.get<unknown>(NO_ADDRESS),
     shipped(ctx).count({ state: "waiting" }), shipped(ctx).count({ state: "asked" }), shipped(ctx).count({ state: "reminded" }),
-    shipped(ctx).count({ state: "settled" }), shipped(ctx).count({ state: "failed" }),
+    shipped(ctx).count({ state: "settled" }), shipped(ctx).count({ state: "failed" }), stops(ctx).count(),
   ]);
   // Every buyer whose request went out was asked, whatever happened with the reminder.
-  return { on, days, remind, remindDays, noSender: noSender === true, noAddress: noAddress === true, waiting, asked: asked + reminded + settled, reminded, failed };
+  return { on, days, remind, remindDays, noSender: noSender === true, noAddress: noAddress === true, waiting, asked: asked + reminded + settled, reminded, failed, stopped: stoppedBuyers };
 }
 
 /**

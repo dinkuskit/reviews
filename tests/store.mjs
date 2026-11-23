@@ -45,7 +45,7 @@ export function store() {
       async cancel(name) { tasks.delete(name); },
       async list() { return [...tasks].map(([name, schedule]) => ({ name, schedule, nextRunAt: "", lastRunAt: null })); },
     },
-    storage: { reviews: collection(), ratings: collection(), shipped: collection() },
+    storage: { reviews: collection(), ratings: collection(), shipped: collection(), stops: collection() },
     kv: {
       async get(key) { return kv.get(key)?.value ?? null; },
       async set(key, value) { kv.set(key, { value, revision: String(++turn) }); },
