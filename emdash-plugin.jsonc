@@ -5,6 +5,16 @@
   "name": "DinkusKit Reviews",
   "description": "Star ratings and reviews from your buyers, for DinkusKit Commerce stores on EmDash. Records stay in your store.",
   "keywords": ["reviews", "ratings", "product reviews", "ecommerce"],
+  "sections": {
+    "description": { "file": "./docs/registry-listing/description.md" },
+    "installation": { "file": "./docs/registry-listing/installation.md" },
+    "faq": { "file": "./docs/registry-listing/faq.md" }
+  },
+  "release": {
+    "artifacts": {
+      "icon": { "file": "./assets/listing/icon.png" }
+    }
+  },
   "license": "MIT",
   "author": {
     "name": "DinkusKit",

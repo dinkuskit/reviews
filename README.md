@@ -4,7 +4,7 @@ Star ratings and reviews from buyers, for [DinkusKit Commerce](https://github.co
 
 ## Status
 
-Early build. The plugin keeps reviews, lets the owner moderate them, takes in shipped orders from the store's courier, emails each buyer one review request, and keeps the review the buyer sends. Two things outside this repository are not released yet, so no store collects reviews today: the store's courier with Commerce's side of it, and the store template's `/review` page. Nothing is published to the Registry.
+Version 0.1.0 is set up to publish to the EmDash Registry as `dinkus-reviews`; the owner approved publishing on 2026-11-23. It needs two pieces from outside this repository: Commerce's courier news (`order.shipped`), which first ships in a Commerce 0.9.0 release, and the DinkusKit store template's courier timer, `/review` page and product-page ratings. Until a store has both, it collects no reviews.
 
 What exists:
 
@@ -19,13 +19,13 @@ What exists:
 - The stop link (`src/requests.ts`, `src/write.ts`). Every request and reminder ends with "Stop review emails from <store>", a link to the store's `/review` page with `o`, `k` and `stop=1`. `POST write` with those fields answers `stop` (show the button) or `stopped`, and changes nothing, so a mail filter that opens every link stops nothing. `POST send` with them keeps the stop and answers `stopped`. The stop is one record in the `stops` collection whose id is the SHA-256 of the address in lower case; the address is not kept. The hourly run checks it before each request and each reminder: an order not yet asked becomes `stopped`, and an asked order gets no reminder. The stop link works as long as the order's request is kept, past the 60 days of the review links. The Reviews page shows how many buyers stopped, with no addresses and no way to turn emails back on. The published store template draws the stop page from its next version.
 - The plugin's side of the buyer's review page (`src/write.ts`). EmDash does not let a plugin serve a web page, so the store draws `/review` itself and its server calls two public routes, the way the store's order lookup page calls Commerce. `POST write` with `{ o, p, k }` from the link answers what it opens: `{ "ok": true, "state": "open", productId, productName, name, anonymousName, bodyMax, nameMax }`, `{ "ok": true, "state": "done" }` when that product was already reviewed from that order, or `{ "ok": false, "error": { "code": "CLOSED" } }`. `POST send` with `{ o, p, k, stars, body, name }` keeps the review once and answers `{ "ok": true, "result": "sent" | "held" | "done" }` (`held` when approve-first is on), or is refused with `CLOSED`, `STARS`, `LONG`, `NAME` or `CHARS`. Neither route ever answers the order or the buyer's email.
 
-Not built yet: the store's courier itself and Commerce's side of it (other repositories), the store template's `/review` page, and the stars on the storefront.
+Not in the first version: review photos (see the charter).
 
 What is decided, and what is still open, is in [docs/CHARTER.md](docs/CHARTER.md) and [docs/research/product-ratings.md](docs/research/product-ratings.md).
 
 ## Install type
 
-Registry only. The plugin is built for the EmDash plugin Registry and runs sandboxed. It is not listed in the Registry yet.
+Registry only, sandboxed. The listing copy is in `docs/registry-listing/` and its icon in `assets/listing/`.
 
 ## Develop
 
@@ -38,6 +38,10 @@ npm test
 ```
 
 `npm test` builds the plugin, packages it the way the Registry does (failing if the backend passes 128 KiB), and runs the tests.
+
+## Release
+
+`.github/workflows/release.yml` publishes to the EmDash Registry when a `vX.Y.Z` tag matching `package.json`'s version is pushed (Run workflow on the tag retries). It runs the checks, prepares the bundle with the pinned `emdash-plugin release prepare`, signs its build provenance, publishes with the pinned EmDash release-action (listing icon included), waits up to 30 minutes for the owner's approval at releases.emdashcms.com, and passes only when the Registry record carries exactly the prepared bundle. The service accepts releases only from a public repository. [`docs/proof/registry-release-authority/`](docs/proof/registry-release-authority/) shows how the service binds a release to the approved repository and workflow, and checks that authority again before it writes.
 
 ## Pull requests
 

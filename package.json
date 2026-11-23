@@ -1,6 +1,6 @@
 {
   "name": "@dinkuskit/reviews",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Product ratings and reviews for DinkusKit stores on EmDash",
   "type": "module",
   "private": true,
