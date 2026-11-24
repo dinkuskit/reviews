@@ -23,6 +23,7 @@ export interface ListView {
   items: Listed[];
   /** Set when more reviews follow this page. */
   next?: string;
+  olderPage: boolean;
   counts: Counts;
   approveFirst: boolean;
   /** Whether the store's courier is bringing shipped orders, and how many wait. */
@@ -90,10 +91,20 @@ export function listPage(view: ListView, toast?: Toast): BlockResponse {
     ] });
     blocks.push({ type: "actions", elements: (Object.keys(FILTERS) as Filter[]).map(key =>
       ({ type: "button" as const, label: FILTERS[key], action_id: "list", value: key, ...(key === filter ? { style: "primary" as const } : {}) })) });
+    // The host replaces the table on each interaction, so these are pages, not “Load more”.
+    const navigation: Block & { type: "actions" } = { type: "actions", block_id: "review-pages", elements: [] };
+    // Keep the main button's identity as Older becomes Newest on the last page.
+    const pageAction = `more:${filter}`;
+    if (view.next) {
+      navigation.elements.push({ type: "button", label: "Older reviews", action_id: pageAction, value: { cursor: view.next } });
+      if (view.olderPage) navigation.elements.push({ type: "button", label: "Newest reviews", action_id: "list", value: filter });
+    } else if (view.olderPage) {
+      navigation.elements.push({ type: "button", label: "Newest reviews", action_id: pageAction });
+    }
+    if (navigation.elements.length) blocks.push(navigation);
     blocks.push({ type: "table", page_action_id: `more:${filter}`,
       empty_text: filter === "all" ? "No reviews yet." : `No reviews are ${FILTERS[filter].toLowerCase()}.`,
       columns: [{ key: "review", label: "Review", format: "element" }, { key: "from", label: "From" }, { key: "status", label: "Status" }],
-      ...(view.next ? { next_cursor: view.next } : {}),
       rows: view.items.map(({ id, review }) => ({
         review: { type: "button", label: `${starRow(review.stars)} ${review.productName || review.productId}`, action_id: "open", value: id },
         from: `${review.name} · ${day(review.createdAt)}`,

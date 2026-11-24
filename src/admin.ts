@@ -37,7 +37,7 @@ async function list(ctx: PluginContext, filter: Filter, cursor?: string, toast?:
     countReviews(ctx, "published"), countReviews(ctx, "pending"), countReviews(ctx, "hidden"), countReviews(ctx, "spam"),
     approveFirst(ctx), courierState(ctx), requestState(ctx),
   ]);
-  return listPage({ filter, items: page.items, next: page.cursor, counts: { published, pending, hidden, spam }, approveFirst: hold, courier, requests }, toast);
+  return listPage({ filter, items: page.items, next: page.cursor, olderPage: Boolean(cursor), counts: { published, pending, hidden, spam }, approveFirst: hold, courier, requests }, toast);
 }
 
 const GONE: Toast = { message: "That review is no longer here.", type: "error" };
