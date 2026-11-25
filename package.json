@@ -19,10 +19,10 @@
     "test": "npm run build && node --test tests/*.test.mjs"
   },
   "devDependencies": {
-    "@emdash-cms/blocks": "1.5.0",
-    "@emdash-cms/plugin-cli": "0.13.6",
+    "@emdash-cms/blocks": "1.6.0",
+    "@emdash-cms/plugin-cli": "0.13.7",
     "@emdash-cms/plugin-types": "0.6.1",
-    "emdash": "1.5.0",
+    "emdash": "1.6.0",
     "typescript": "6.0.3"
   },
   "license": "MIT",
@@ -39,6 +39,6 @@
     "./sandbox": "./dist/plugin.mjs"
   },
   "peerDependencies": {
-    "emdash": "1.5.0"
+    "emdash": "1.6.0"
   }
 }
