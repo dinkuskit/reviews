@@ -44,11 +44,26 @@ test("the table lists reviews newest first, 20 a page, and filters by status", a
   assert.equal(table.rows[0].review.label, "★★★★★ Camp Mug");
   assert.deepEqual(first.blocks.find(block => block.type === "stats").items.map(item => item.value), [22, 1, 0]);
 
-  const rest = await press(ctx, table.page_action_id, { cursor: table.next_cursor });
+  const pages = response => response.blocks.find(block => block.block_id === "review-pages")?.elements;
+  const [older] = pages(first);
+  assert.equal(older.label, "Older reviews");
+  assert.equal(table.next_cursor, undefined, "the renderer won't show a Load more button");
+  const rest = await press(ctx, older.action_id, older.value);
   valid(rest);
   const more = rest.blocks.find(block => block.type === "table");
   assert.deepEqual(more.rows.map(row => row.from.split(" · ")[0]), ["Buyer 3", "Buyer 2", "Buyer 1"]);
-  assert.equal(more.next_cursor, undefined);
+  assert.deepEqual(pages(rest).map(button => button.label), ["Newest reviews"]);
+
+  const published = await press(ctx, "list", "published");
+  const [olderPublished] = pages(published);
+  const publishedRest = await press(ctx, olderPublished.action_id, olderPublished.value);
+  const [newestPublished] = pages(publishedRest);
+  const restored = await press(ctx, newestPublished.action_id, newestPublished.value);
+  valid(restored);
+  assert.equal(newestPublished.action_id, olderPublished.action_id, "keep the last-page control focused when it changes label");
+  const restoredRows = restored.blocks.find(block => block.type === "table").rows;
+  assert.equal(restoredRows.length, 20);
+  assert.match(restoredRows[0].from, /^Buyer 22 · /);
 
   const waiting = (await press(ctx, "list", "pending")).blocks.find(block => block.type === "table");
   assert.deepEqual(waiting.rows.map(row => row.review.value), ["r23"]);
@@ -56,6 +71,20 @@ test("the table lists reviews newest first, 20 a page, and filters by status", a
   const none = (await press(ctx, "list", "spam")).blocks.find(block => block.type === "table");
   assert.equal(none.rows.length, 0);
   assert.equal(none.empty_text, "No reviews are spam.");
+  assert.equal(pages(await press(ctx, "list", "spam")), undefined);
+});
+
+test("an intermediate page offers both older and newest reviews", async () => {
+  const ctx = store();
+  for (let i = 0; i < 41; i++) await ctx.storage.reviews.put(`pending-${i}`, review({ status: "pending" }));
+  const pageButtons = response => response.blocks.find(block => block.block_id === "review-pages").elements;
+  const [older] = pageButtons(await press(ctx, "list", "pending"));
+  const middle = await press(ctx, older.action_id, older.value);
+  const [next, newest] = pageButtons(middle);
+  assert.deepEqual([next.label, newest.label], ["Older reviews", "Newest reviews"]);
+  assert.notEqual(next.action_id, newest.action_id, "the renderer needs distinct action keys");
+  assert.equal(newest.value, "pending");
+  assert.equal((await press(ctx, next.action_id, next.value)).blocks.find(block => block.type === "table").rows.length, 1);
 });
 
 test("hiding, marking as spam and publishing again move the product's rating with them", async () => {
